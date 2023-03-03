@@ -1,0 +1,58 @@
+<LastEntry>:
+    orientation: "vertical"
+    padding: 30, 40, 30, 30
+        
+    BoxLayout:
+        orientation: "vertical"
+        size_hint: 1, 0.5
+        MDTextField:
+            mode: "rectangle"
+            hint_text: "Дата"
+    
+    BoxLayout:
+        orientation: "vertical"
+        MDTextField:
+            mode: "rectangle"
+            hint_text: "Показания одометра в начале смены"
+    
+    BoxLayout:
+        orientation: "vertical"
+        MDTextField:
+            mode: "rectangle"
+            hint_text: "Показания одометра в конце смены"
+    
+    BoxLayout:
+        orientation: "vertical"
+        MDTextField:
+            mode: "rectangle"
+            disabled: True
+            hint_text: "Пробег за смену"
+    
+    BoxLayout:
+        size_hint: 1, 0.3
+    BoxLayout:
+        size_hint: 1, 2
+        orientation: "vertical"
+        MDTextField:
+            multiline: True
+            size_hint: 1, 1
+            mode: "rectangle"
+            hint_text: "Маршрут"
+    
+    BoxLayout:
+        orientation: "vertical"
+        size_hint: (1, 2.3)
+        padding: 15, 60, 15, 20
+        spacing: 30
+        MDRaisedButton:
+            size_hint: (1, 0.5)
+            text: "Заправиться"
+        BoxLayout:
+            spacing: 20
+            MDRaisedButton:
+                size_hint: 1, 1
+                text: "В меню"
+            MDRaisedButton:
+                size_hint: 1, 1
+                text: "Новая смена"
+            
