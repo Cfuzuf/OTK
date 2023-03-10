@@ -1,54 +1,86 @@
-<LastEntry>:
+<MyTextInput@MDTextField>:
+    mode: "rectangle"
+
+BoxLayout:
+    id: day
     orientation: "vertical"
-    padding: 30, 40, 30, 30
+    padding: "30dp", "35dp", "30dp", "30dp"
         
     BoxLayout:
         orientation: "vertical"
-        size_hint: 1, 0.5
-        MDTextField:
-            mode: "rectangle"
-            hint_text: "Дата"
-    
+        size_hint: 1, 0.6
+
+        MDRectangleFlatButton:
+            size_hint: 1, 1
+            font_size: "18dp"
+            id: date
+            text: app.day["date"]
+            on_press: app.show_date_picker()
+
     BoxLayout:
         orientation: "vertical"
-        MDTextField:
-            mode: "rectangle"
+
+        MyTextInput:
+            id: start
+            input_filter: "int"
+            input_type: "number"
             hint_text: "Показания одометра в начале смены"
+            text: app.day["start"]
+            on_focus: if not self.focus: app.calculation_total(start=self.text)
     
     BoxLayout:
         orientation: "vertical"
-        MDTextField:
-            mode: "rectangle"
+
+        MyTextInput:
+            id: stop
+            input_filter: "int"
+            input_type: "number"
             hint_text: "Показания одометра в конце смены"
+            text: app.day["stop"]
+            on_focus: if not self.focus: app.calculation_total(stop=self.text)
     
     BoxLayout:
-        orientation: "vertical"
-        MDTextField:
-            mode: "rectangle"
-            disabled: True
+        spacing: "20dp"
+
+        MyTextInput:
+            id: total
+            readonly: True
             hint_text: "Пробег за смену"
-    
+            text: app.day["total"]
+
+        MyTextInput:
+            id: fuel_consumed
+            readonly: True
+            hint_text: "Затрачено топлива"
+            text: app.day["fuel_consumed"]
+
     BoxLayout:
         size_hint: 1, 0.3
+
     BoxLayout:
         size_hint: 1, 2
         orientation: "vertical"
-        MDTextField:
+
+        MyTextInput:
+            id: route
             multiline: True
             size_hint: 1, 1
-            mode: "rectangle"
             hint_text: "Маршрут"
-    
+            text: app.day["route"]
+            on_focus: if not self.focus: app.update_route(self.text)
+            on_text: app.unfocus_route_input(self.text)
+            
     BoxLayout:
         orientation: "vertical"
-        size_hint: (1, 2.3)
-        padding: 15, 60, 15, 20
-        spacing: 30
+        size_hint: 1, 2.3
+        padding: "15dp", "60dp", "15dp", "20dp"
+        spacing: "30dp"
+
         MDRaisedButton:
-            size_hint: (1, 0.5)
+            size_hint: 1, 0.5
             text: "Заправиться"
         BoxLayout:
-            spacing: 20
+            spacing: "20dp"
             MDRaisedButton:
                 size_hint: 1, 1
                 text: "В меню"
