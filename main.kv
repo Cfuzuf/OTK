@@ -1,119 +1,173 @@
+#: import NoTransition kivy.uix.screenmanager.NoTransition
+
 <MyTextInput@MDTextField>:
     mode: "rectangle"
     font_size: "20dp"
 
-BoxLayout:
-    id: day
-    orientation: "vertical"
-    padding: "30dp", "35dp", "30dp", "30dp"
-    spacing: "20dp"
-        
-    BoxLayout:
-        orientation: "vertical"
-        size_hint: 1, 0.6
+<MyButton@MDRaisedButton>:
+    size_hint: 1, 1
 
-        MDRectangleFlatButton:
-            size_hint: 1, 1
-            font_size: "18dp"
-            id: date
-            text: app.day["date"]
-            on_press: app.show_date_picker()
+MyScreenManager:
+    transition: NoTransition()
 
-    BoxLayout:
-        orientation: "vertical"
-
-        MyTextInput:
-            id: start
-            input_filter: "int"
-            input_type: "number"
-            hint_text: "Показания одометра в начале смены"
-            text: app.day["start"]
-            on_focus: if not self.focus: app.calculation_and_update_total(start=self.text)
-    
-    BoxLayout:
-        orientation: "vertical"
-
-        MyTextInput:
-            id: stop
-            input_filter: "int"
-            input_type: "number"
-            hint_text: "Показания одометра в конце смены"
-            text: app.day["stop"]
-            on_focus: if not self.focus: app.calculation_and_update_total(stop=self.text)
-    
-    BoxLayout:
-        spacing: "20dp"
-
-        MyTextInput:
-            id: total
-            readonly: True
-            hint_text: "Пробег за смену"
-            text: app.day["total"]
-            on_text: app.calculation_and_update_fuel_consumed()
-
-        MyTextInput:
-            id: fuel_consumed
-            readonly: True
-            font_size: "18dp"
-            hint_text: "Затрачено топлива"
-            text: app.day["fuel_consumed"]
-
-    BoxLayout:
-        spacing: "20dp"
-
-        MyTextInput:
-            id: fueling_in_liters
-            input_filter: "float"
-            hint_text: "Заправка в литрах"
-            text: app.day["fueling_in_liters"]
-            on_focus: if self.focus and self.text=="0": self.text = ""
-            on_focus: if not self.focus: app.update_fueling(id="fueling_in_liters", text=self.text)
-
-        MyTextInput:
-            id: fueling_in_rubles
-            input_filter: "float"
-            hint_text: "Заправка в рублях"
-            text: app.day["fueling_in_rubles"]
-            on_focus: if self.focus and self.text=="0": self.text = ""
-            on_focus: if not self.focus: app.update_fueling(id="fueling_in_rubles", text=self.text)
-    
-    BoxLayout:
-        orientation: "vertical"
-        
-        MyTextInput:
-            id: fuel_card_balance
-            input_filter: "float"
-            input_type: "number"
-            hint_text: "Остаток на топливной карте"
-            text: app.day["fuel_card_balance"]
-            on_focus: if self.focus and self.text=="Не задано...": self.text = ""
-            on_focus: if not self.focus: app.update_fuel_card_balance(text=self.text, flag=1)
-
-    BoxLayout:
-        size_hint: 1, 2.7
-        orientation: "vertical"
-
-        MyTextInput:
-            id: route
-            multiline: True
-            size_hint: 1, 1
-            hint_text: "Маршрут"
-            text: app.day["route"]
-            on_focus: if not self.focus: app.update_route(self.text)
-            on_text: app.unfocus_route_input(self.text)
-            
-    BoxLayout:
-        orientation: "vertical"
-        size_hint: 1, 1.9
-        padding: "15dp", "30dp", "15dp", "15dp"
-        spacing: "30dp"
+    Day:
+        name: "day"
 
         BoxLayout:
+            orientation: "vertical"
+            padding: "25dp", "35dp", "25dp", "30dp"
             spacing: "20dp"
-            MDRaisedButton:
-                size_hint: 1, 1
-                text: "В меню"
-            MDRaisedButton:
-                size_hint: 1, 1
-                text: "Новая смена"
+                
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: 1, 0.6
+
+                MDRectangleFlatButton:
+                    size_hint: 1, 1
+                    font_size: "18dp"
+                    id: date
+                    text: app.day["date"]
+                    on_press: app.show_date_picker()
+
+            BoxLayout:
+                orientation: "vertical"
+
+                MyTextInput:
+                    id: start
+                    input_filter: "int"
+                    input_type: "number"
+                    hint_text: "Показания одометра в начале смены"
+                    text: app.day["start"]
+                    on_focus: if not self.focus: app.calculation_and_update_total(start=self.text)
             
+            BoxLayout:
+                orientation: "vertical"
+
+                MyTextInput:
+                    id: stop
+                    input_filter: "int"
+                    input_type: "number"
+                    hint_text: "Показания одометра в конце смены"
+                    text: app.day["stop"]
+                    on_focus: if not self.focus: app.calculation_and_update_total(stop=self.text)
+            
+            BoxLayout:
+                spacing: "20dp"
+
+                MyTextInput:
+                    id: total
+                    readonly: True
+                    hint_text: "Пробег за смену"
+                    text: app.day["total"]
+                    on_text: app.calculation_and_update_fuel_consumed()
+
+                MyTextInput:
+                    id: fuel_consumed
+                    readonly: True
+                    font_size: "18dp"
+                    hint_text: "Затрачено топлива"
+                    text: app.day["fuel_consumed"]
+
+            BoxLayout:
+                spacing: "20dp"
+
+                MyTextInput:
+                    id: fueling_in_liters
+                    input_filter: "float"
+                    hint_text: "Заправка в литрах"
+                    text: app.day["fueling_in_liters"]
+                    on_focus: if self.focus: self.text = ""
+                    on_focus: if not self.focus: app.update_fueling(id="fueling_in_liters", text=self.text)
+
+                MyTextInput:
+                    id: fueling_in_rubles
+                    input_filter: "float"
+                    hint_text: "Заправка в рублях"
+                    text: app.day["fueling_in_rubles"]
+                    on_focus: if self.focus: self.text = ""
+                    on_focus: if not self.focus: app.update_fueling(id="fueling_in_rubles", text=self.text)
+            
+            BoxLayout:
+                orientation: "vertical"
+                
+                MyTextInput:
+                    id: fuel_card_balance
+                    readonly: True
+                    # input_filter: "float"
+                    # input_type: "number"
+                    hint_text: "Остаток на топливной карте"
+                    text: app.day["fuel_card_balance"]
+                    on_focus: if self.focus and self.text=="Не задано...": self.text = ""
+                    # on_focus: if not self.focus: root.update_fuel_card_balance(text=self.text, flag=1)
+
+            BoxLayout:
+                size_hint: 1, 2.7
+                orientation: "vertical"
+
+                MyTextInput:
+                    id: route
+                    multiline: True
+                    size_hint: 1, 1
+                    hint_text: "Маршрут"
+                    text: app.day["route"]
+                    on_focus: if not self.focus: app.update_route(self.text)
+                    on_text: app.unfocus_route_input(self.text)
+                    
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: 1, 1.9
+                padding: "15dp", "30dp", "15dp", "15dp"
+                spacing: "30dp"
+
+                BoxLayout:
+                    spacing: "20dp"
+
+                    MyButton:
+                        text: "В меню"
+                        on_press: root.current = "menu"
+
+                    MyButton:
+                        text: "Новая смена"
+                        on_press: 
+
+    Menu:
+        name: "menu"
+
+        BoxLayout:
+            orientation: "vertical"
+
+            MyButton:
+                text: "Настройки"
+                on_press: root.current = "setting"
+            
+            MyButton:
+                text: "Возврат"
+                on_press: root.current = "day"
+
+    Setting:
+        name: "setting"
+
+        BoxLayout:
+            orientation: "vertical"
+
+            MyTextInput:
+                id: fuel_consumption_per_100_km
+                input_filter: "float"
+                input_type: "number"
+                hint_text: "Потребление топлива машиной на 100км."
+                text: app.settings["fuel_consumption_per_100_km"]
+                on_focus: if self.focus and self.text == "Не настроено": self.text = ""
+                on_focus: if not self.focus: app.setting_fuel_consumption_per_100_km(self.text)
+
+            MyTextInput:
+                id: settings_fuel_card_balance
+                input_filter: "float"
+                input_type: "number"
+                hint_text: "Остаток на топливной карте"
+                text: app.day["fuel_card_balance"]
+                on_focus: if self.focus: self.text = ""
+                on_focus: if not self.focus: app.setting_fuel_card_balance(self.text)
+
+            MyButton:
+                text: "Сохранить настройки"
+                on_press: root.current = "menu"
