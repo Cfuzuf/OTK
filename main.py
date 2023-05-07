@@ -26,27 +26,26 @@ class Day(Screen):
 
 
 class MainApp(MDApp):
-    settings = {
-        "fuel_consumption_per_100_km": "Не настроено"
-    }
+    # settings = {
+    #     "fuel_consumption_per_100_km": "Не настроено"
+    # }
     day = {
         "date": "Дата",
         "start": "",
         "stop": "",
         "total": " ",
         "route": " ",
-        "fuel_consumed": "Не настроено",
         "fueling_in_liters": "0",
         "fueling_in_rubles": "0",
         "fuel_card_balance": "Не задано..."
     }
 
-    if not os.path.isfile("./settings.json"):
-        with open("./settings.json", "w") as file:
-            json.dump(settings, file, indent=4)
-    else:
-        with open("./settings.json", "r") as file:
-            settings = json.load(file)
+    # if not os.path.isfile("./settings.json"):
+    #     with open("./settings.json", "w") as file:
+    #         json.dump(settings, file, indent=4)
+    # else:
+    #     with open("./settings.json", "r") as file:
+    #         settings = json.load(file)
 
     if not os.path.isfile("./day.json"):
         with open("./day.json", "w") as file:
@@ -66,15 +65,15 @@ class MainApp(MDApp):
         date_picker.bind(on_save=self.pick_date)
         date_picker.open()
 
-    def update_settings_json(self):
-        with open("./settings.json", "w") as file:
-            json.dump(self.settings, file, indent=4)
+    # def update_settings_json(self):
+    #     with open("./settings.json", "w") as file:
+    #         json.dump(self.settings, file, indent=4)
 
     def update_day_json(self):
         with open("./day.json", "w") as file:
             json.dump(self.day, file, indent=4)
 
-    def calculation_and_update_total(self, **kwargs):
+    def calculation_and_update_total(self, **kwargs):   # TODO
         self.day |= kwargs.items()
 
         if (
@@ -91,22 +90,22 @@ class MainApp(MDApp):
 
         self.update_day_json()
 
-    def calculation_and_update_fuel_consumed(self):
-        if self.settings["fuel_consumption_per_100_km"] == "Не настроено":
-            self.day["fuel_consumed"] = "Не настроено"
-            self.root.ids.fuel_consumed.text = self.day["fuel_consumed"]
-        else:
-            if self.day["total"] == " ":
-                self.day["fuel_consumed"] = "0"
-                self.root.ids.fuel_consumed.text = self.day["fuel_consumed"]
-            else:
-                fuel_consumed = str(
-                    int(self.day["total"]) *
-                    int(self.settings["fuel_consumption_per_100_km"]) /
-                    100
-                )
-                self.day["fuel_consumed"] = fuel_consumed
-                self.root.ids.fuel_consumed.text = self.day["fuel_consumed"]
+    # def calculation_and_update_fuel_consumed(self):
+    #     if self.settings["fuel_consumption_per_100_km"] == "Не настроено":
+    #         self.day["fuel_consumed"] = "Не настроено"
+    #         self.root.ids.fuel_consumed.text = self.day["fuel_consumed"]
+    #     else:
+    #         if self.day["total"] == " ":
+    #             self.day["fuel_consumed"] = "0"
+    #             self.root.ids.fuel_consumed.text = self.day["fuel_consumed"]
+    #         else:
+    #             fuel_consumed = str(
+    #                 int(self.day["total"]) *
+    #                 int(self.settings["fuel_consumption_per_100_km"]) /
+    #                 100
+    #             )
+    #             self.day["fuel_consumed"] = fuel_consumed
+    #             self.root.ids.fuel_consumed.text = self.day["fuel_consumed"]
 
     def update_fueling(self, id, text):
         if text:
@@ -122,24 +121,24 @@ class MainApp(MDApp):
         self.day["route"] = " ".join(args)
         self.update_day_json()
 
-    def setting_fuel_consumption_per_100_km(self, text):
-        if text:
-            self.settings["fuel_consumption_per_100_km"] = str(text)
-            self.update_settings_json()
-        else:
-            self.root.ids.fuel_consumption_per_100_km.text = self.settings[
-                "fuel_consumption_per_100_km"
-            ]
+    # def setting_fuel_consumption_per_100_km(self, text):
+    #     if text:
+    #         self.settings["fuel_consumption_per_100_km"] = str(text)
+    #         self.update_settings_json()
+    #     else:
+    #         self.root.ids.fuel_consumption_per_100_km.text = self.settings[
+    #             "fuel_consumption_per_100_km"
+    #         ]
 
-    def setting_fuel_card_balance(self, text):
-        if text:
-            self.day["fuel_card_balance"] = str(text)
-            self.root.ids.settings_fuel_card_balance.text = self.day["fuel_card_balance"]
-            self.root.ids.fuel_card_balance.text = self.day["fuel_card_balance"]
-            self.update_day_json()
-        else:
-            self.root.ids.settings_fuel_card_balance.text = self.day["fuel_card_balance"]
-            self.root.ids.fuel_card_balance.text = self.day["fuel_card_balance"]
+    # def setting_fuel_card_balance(self, text):
+    #     if text:
+    #         self.day["fuel_card_balance"] = str(text)
+    #         self.root.ids.settings_fuel_card_balance.text = self.day["fuel_card_balance"]
+    #         self.root.ids.fuel_card_balance.text = self.day["fuel_card_balance"]
+    #         self.update_day_json()
+    #     else:
+    #         self.root.ids.settings_fuel_card_balance.text = self.day["fuel_card_balance"]
+    #         self.root.ids.fuel_card_balance.text = self.day["fuel_card_balance"]
 
     def calculation_fuel_card_balance(self, last_fueling):
         if self.day["fuel_card_balance"] == "Не задано...":
@@ -152,10 +151,13 @@ class MainApp(MDApp):
             self.update_fuel_card_balance(fuel_card_balance)
 
     def update_fuel_card_balance(self, text):
-        self.day["fuel_card_balance"] = str(text)
-        self.root.ids.fuel_card_balance.text = self.day["fuel_card_balance"]
-        self.root.ids.settings_fuel_card_balance.text = self.day["fuel_card_balance"]
-        self.update_day_json()
+        if text:
+            self.day["fuel_card_balance"] = str(text)
+            self.root.ids.fuel_card_balance.text = self.day["fuel_card_balance"]
+            # self.root.ids.settings_fuel_card_balance.text = self.day["fuel_card_balance"]
+            self.update_day_json()
+        else:
+            self.root.ids.fuel_card_balance.text = self.day["fuel_card_balance"]
 
     def unfocus_route_input(self, text):
         if text:

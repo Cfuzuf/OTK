@@ -1,4 +1,5 @@
-#: import NoTransition kivy.uix.screenmanager.NoTransition
+#:kivy 1.1.1
+#:import NoTransition kivy.uix.screenmanager.NoTransition
 
 <MyTextInput@MDTextField>:
     mode: "rectangle"
@@ -15,7 +16,7 @@ MyScreenManager:
 
         BoxLayout:
             orientation: "vertical"
-            padding: "25dp", "35dp", "25dp", "30dp"
+            padding: "25dp", "30dp", "25dp", "30dp"
             spacing: "20dp"
                 
             BoxLayout:
@@ -38,8 +39,10 @@ MyScreenManager:
                     input_type: "number"
                     hint_text: "Показания одометра в начале смены"
                     text: app.day["start"]
-                    on_focus: if not self.focus: app.calculation_and_update_total(start=self.text)
-            
+                    on_focus: if self.focus: self.text = ""
+                    on_focus: if not self.focus and self.text: app.calculation_and_update_total(start=self.text)
+                    on_focus: if not self.focus and not self.text: self.text = app.day["start"]
+
             BoxLayout:
                 orientation: "vertical"
 
@@ -49,24 +52,27 @@ MyScreenManager:
                     input_type: "number"
                     hint_text: "Показания одометра в конце смены"
                     text: app.day["stop"]
-                    on_focus: if not self.focus: app.calculation_and_update_total(stop=self.text)
+                    on_focus: if self.focus: self.text = ""
+                    on_focus: if not self.focus and self.text: app.calculation_and_update_total(stop=self.text)
+                    on_focus: if not self.focus and not self.text: self.text = app.day["stop"]
             
             BoxLayout:
-                spacing: "20dp"
+                orientation: "vertical"
+                # spacing: "20dp"
 
                 MyTextInput:
                     id: total
                     readonly: True
                     hint_text: "Пробег за смену"
                     text: app.day["total"]
-                    on_text: app.calculation_and_update_fuel_consumed()
+                    # on_text: app.calculation_and_update_fuel_consumed()
 
-                MyTextInput:
-                    id: fuel_consumed
-                    readonly: True
-                    font_size: "18dp"
-                    hint_text: "Затрачено топлива"
-                    text: app.day["fuel_consumed"]
+                # MyTextInput:
+                #     id: fuel_consumed
+                #     readonly: True
+                #     font_size: "18dp"
+                #     hint_text: "Затрачено топлива"
+                #     text: app.day["fuel_consumed"]
 
             BoxLayout:
                 spacing: "20dp"
@@ -92,13 +98,13 @@ MyScreenManager:
                 
                 MyTextInput:
                     id: fuel_card_balance
-                    readonly: True
-                    # input_filter: "float"
-                    # input_type: "number"
+                    # readonly: True
+                    input_filter: "float"
+                    input_type: "number"
                     hint_text: "Остаток на топливной карте"
                     text: app.day["fuel_card_balance"]
-                    on_focus: if self.focus and self.text=="Не задано...": self.text = ""
-                    # on_focus: if not self.focus: root.update_fuel_card_balance(text=self.text, flag=1)
+                    on_focus: if self.focus: self.text = ""
+                    on_focus: if not self.focus: app.update_fuel_card_balance(text=self.text)
 
             BoxLayout:
                 size_hint: 1, 2.7
@@ -150,23 +156,23 @@ MyScreenManager:
         BoxLayout:
             orientation: "vertical"
 
-            MyTextInput:
-                id: fuel_consumption_per_100_km
-                input_filter: "float"
-                input_type: "number"
-                hint_text: "Потребление топлива машиной на 100км."
-                text: app.settings["fuel_consumption_per_100_km"]
-                on_focus: if self.focus and self.text == "Не настроено": self.text = ""
-                on_focus: if not self.focus: app.setting_fuel_consumption_per_100_km(self.text)
+            # MyTextInput:
+            #     id: fuel_consumption_per_100_km
+            #     input_filter: "float"
+            #     input_type: "number"
+            #     hint_text: "Потребление топлива машиной на 100км."
+            #     text: app.settings["fuel_consumption_per_100_km"]
+            #     on_focus: if self.focus and self.text == "Не настроено": self.text = ""
+            #     on_focus: if not self.focus: app.setting_fuel_consumption_per_100_km(self.text)
 
-            MyTextInput:
-                id: settings_fuel_card_balance
-                input_filter: "float"
-                input_type: "number"
-                hint_text: "Остаток на топливной карте"
-                text: app.day["fuel_card_balance"]
-                on_focus: if self.focus: self.text = ""
-                on_focus: if not self.focus: app.setting_fuel_card_balance(self.text)
+            # MyTextInput:
+            #     id: settings_fuel_card_balance
+            #     input_filter: "float"
+            #     input_type: "number"
+            #     hint_text: "Остаток на топливной карте"
+            #     text: app.day["fuel_card_balance"]
+            #     on_focus: if self.focus: self.text = ""
+            #     on_focus: if not self.focus: app.setting_fuel_card_balance(self.text)
 
             MyButton:
                 text: "Сохранить настройки"
