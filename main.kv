@@ -134,7 +134,8 @@ MyScreenManager:
 
                     MyButton:
                         text: "Новая смена"
-                        on_press: 
+                        on_press: if app.day["date"]!="Дата": app.confirmation_start_new_day()
+                        on_press: if app.day["date"]=="Дата": app.show_incorrect_date_dialog()
 
     Menu:
         name: "menu"

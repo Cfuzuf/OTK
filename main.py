@@ -1,8 +1,11 @@
 import json
+import sqlite3
 import os.path
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.uix.pickers import MDDatePicker
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.dialog import MDDialog
 
 # Размер окна для запуска на ПК. Перед созданием APK файла, удалить или закомментировать.
 from kivy.core.window import Window
@@ -31,9 +34,9 @@ class MainApp(MDApp):
     # }
     day = {
         "date": "Дата",
-        "start": "",
-        "stop": "",
-        "total": " ",
+        "start": "0",
+        "stop": "0",
+        "total": "0",
         "route": " ",
         "fueling_in_liters": "0",
         "fueling_in_rubles": "0",
@@ -73,7 +76,7 @@ class MainApp(MDApp):
         with open("./day.json", "w") as file:
             json.dump(self.day, file, indent=4)
 
-    def calculation_and_update_total(self, **kwargs):   # TODO
+    def calculation_and_update_total(self, **kwargs):
         self.day |= kwargs.items()
 
         if (
@@ -85,7 +88,7 @@ class MainApp(MDApp):
                 int(self.day["stop"]) - int(self.day["start"]))
             self.root.ids.total.text = self.day["total"]
         else:
-            self.day["total"] = " "
+            self.day["total"] = "0"
             self.root.ids.total.text = self.day["total"]
 
         self.update_day_json()
@@ -164,6 +167,102 @@ class MainApp(MDApp):
             if text[-1] == "\n":
                 self.root.ids.route.text = text[:-1]
                 self.root.ids.route.focus = False
+
+    def show_alert_dialog(self):
+        self.dialog = MDDialog(
+            auto_dismiss=False,
+            text="""        Запись с текущей датой уже существует в базе данных.
+
+        Для редактирования сущесвующей записи используйте соответствующий пункт меню.""",
+            buttons=[
+                MDFlatButton(
+                    text="Понятно",
+                    # text_color=self.theme_cls.primary_color,
+                    on_press=self.close_dialog
+                )
+            ],
+        )
+        self.dialog.open()
+
+    def show_incorrect_date_dialog(self):
+        self.dialog = MDDialog(
+            auto_dismiss=False,
+            text="""Укажите дату.""",
+            buttons=[
+                MDFlatButton(
+                    text="Хорошо",
+                    on_press=self.close_dialog
+                )
+            ],
+        )
+        self.dialog.open()
+
+    def confirmation_start_new_day(self):
+        self.dialog = MDDialog(
+            auto_dismiss=False,
+            text="""        Вы действительно хотите закончить текущую смену и начать новую?
+
+        Внести изменения будет возможно через соответствующий пункт меню.""",
+            buttons=[
+                MDFlatButton(
+                    text="Да",
+                    on_press=self.close_dialog,
+                    on_release=self.start_new_day
+                ),
+                MDFlatButton(
+                    text="Нет",
+                    on_press=self.close_dialog
+                )
+            ]
+        )
+        self.dialog.open()
+
+    def close_dialog(self, obj):
+        self.dialog.dismiss()
+
+    def start_new_day(self, *args):
+        with sqlite3.connect("driving_statistics.db") as db:
+            cursor = db.cursor()
+            cursor.execute("""CREATE TABLE IF NOT EXISTS my_statistics (
+                                                                    date TEXT PRIMARY KEY,
+                                                                    start INT,
+                                                                    stop INT,
+                                                                    total INT,
+                                                                    route TEXT,
+                                                                    fueling_in_liters DECIMAL,
+                                                                    fueling_in_rubles DECIMAL
+                                                                    )
+            """)
+
+            try:
+                cursor.execute(
+                    """INSERT INTO my_statistics (date, start, stop, total, route, fueling_in_liters, fueling_in_rubles) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        f'{self.day["date"]}',
+                        f'{int(self.day["start"])}',
+                        f'{int(self.day["stop"])}',
+                        f'{int(self.day["total"])}',
+                        f'{self.day["route"]}',
+                        f'{float(self.day["fueling_in_liters"])}',
+                        f'{float(self.day["fueling_in_rubles"])}'
+                    )
+                )
+
+                self.day["date"], self.root.ids.date.text = "Дата", "Дата"
+                self.day["start"], self.root.ids.start.text = self.day["stop"], self.day["stop"]
+                self.day["stop"], self.root.ids.stop.text = "0", "0"
+                self.day["total"], self.root.ids.total.text = "0", "0"
+                self.day["fueling_in_liters"], self.root.ids.fueling_in_liters.text = "0", "0"
+                self.day["fueling_in_rubles"], self.root.ids.fueling_in_rubles.text = "0", "0"
+                self.update_day_json()
+
+            # Такая дата уже существует в базе данных.
+            except sqlite3.IntegrityError as e:
+                self.show_alert_dialog()
+
+            except ValueError as e:
+                print(e)
 
 
 if __name__ == "__main__":
