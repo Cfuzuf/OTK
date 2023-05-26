@@ -135,7 +135,7 @@ MyScreenManager:
                     MyButton:
                         text: "Новая смена"
                         on_press: if app.day["date"]!="Дата": app.confirmation_start_new_day()
-                        on_press: if app.day["date"]=="Дата": app.show_incorrect_date_dialog()
+                        on_press: if app.day["date"]=="Дата": app.show_dialog_incorrect_date()
 
     Menu:
         name: "menu"
@@ -143,10 +143,15 @@ MyScreenManager:
         BoxLayout:
             orientation: "vertical"
 
+            # MyButton:
+            #     text: "Настройки"
+            #     on_press: root.current = "setting"
+
             MyButton:
-                text: "Настройки"
-                on_press: root.current = "setting"
-            
+                text: "Редактирование записи"
+                on_press: app.show_recording_date_selection()
+                # on_release: root.current = "editing_select_day"
+                
             MyButton:
                 text: "Возврат"
                 on_press: root.current = "day"
@@ -178,3 +183,90 @@ MyScreenManager:
             MyButton:
                 text: "Сохранить настройки"
                 on_press: root.current = "menu"
+
+    EditingRecordInDatabase:
+        name: "editing_select_day"
+
+        BoxLayout:
+            orientation: "vertical"
+            padding: "25dp", "40dp", "25dp", "30dp"
+            spacing: "20dp"
+                
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: 1, 0.6
+
+                MyTextInput:
+                    id: editing_date
+                    readonly: True
+                    hint_text: "Дата"
+                    on_text: if self.text: root.current = "editing_select_day"
+                    on_text: if not self.text: root.current = "menu"
+
+            BoxLayout:
+                orientation: "vertical"
+
+                MyTextInput:
+                    id: editing_start
+                    input_filter: "int"
+                    input_type: "number"
+                    hint_text: "Показания одометра в начале смены"
+                    on_focus: if not self.focus and editing_start.text and editing_stop.text and int(editing_start.text) < int(editing_stop.text): editing_total.text = str(int(editing_stop.text) - int(editing_start.text))
+
+            BoxLayout:
+                orientation: "vertical"
+
+                MyTextInput:
+                    id: editing_stop
+                    input_filter: "int"
+                    input_type: "number"
+                    hint_text: "Показания одометра в конце смены"
+                    on_focus: if not self.focus and editing_start.text and editing_stop.text and int(editing_start.text) < int(editing_stop.text): editing_total.text = str(int(editing_stop.text) - int(editing_start.text))
+            
+            BoxLayout:
+                orientation: "vertical"
+
+                MyTextInput:
+                    id: editing_total
+                    readonly: True
+                    hint_text: "Пробег за смену"
+
+            BoxLayout:
+                spacing: "20dp"
+
+                MyTextInput:
+                    id: editing_fueling_in_liters
+                    input_filter: "float"
+                    hint_text: "Заправка в литрах"
+
+                MyTextInput:
+                    id: editing_fueling_in_rubles
+                    input_filter: "float"
+                    hint_text: "Заправка в рублях"
+            
+            BoxLayout:
+                size_hint: 1, 2.7
+                orientation: "vertical"
+
+                MyTextInput:
+                    id: editing_route
+                    multiline: True
+                    size_hint: 1, 1
+                    hint_text: "Маршрут"
+                    
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: 1, 1.9
+                padding: "15dp", "36dp", "15dp", "21dp"
+                spacing: "30dp"
+
+                BoxLayout:
+                    spacing: "20dp"
+
+                    MyButton:
+                        text: "Отмена"
+                        on_press: editing_date.text = ""
+
+                    MyButton:
+                        text: "Сохранить Изменения"
+                        on_press: app.confirmation_save_editing_day()

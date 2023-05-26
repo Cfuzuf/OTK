@@ -1,6 +1,7 @@
 import json
 import sqlite3
 import os.path
+import datetime
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.uix.pickers import MDDatePicker
@@ -25,6 +26,14 @@ class Setting(Screen):
 
 
 class Day(Screen):
+    pass
+
+
+class ShowSelectionFromDatabase(Screen):
+    pass
+
+
+class EditingRecordInDatabase(Screen):
     pass
 
 
@@ -67,6 +76,71 @@ class MainApp(MDApp):
         date_picker = MDDatePicker()
         date_picker.bind(on_save=self.pick_date)
         date_picker.open()
+
+    def pick_recording_date(self, *args):
+        date = ".".join(reversed(str(args[1]).split("-")))
+        with sqlite3.connect("driving_statistics.db") as db:
+            cursor = db.cursor()
+            try:
+                recording = cursor.execute(
+                    "SELECT * FROM my_statistics WHERE date=?", (date,)
+                )
+                data = recording.fetchone()
+            except Exception as e:
+                print(e)
+
+            if data is not None:
+                self.load_editing_day(data)
+            else:
+                self.show_alert_dialog_record_does_not_exist()
+
+    def load_editing_day(self, data_list):
+        self.data_list = list(map(str, data_list))
+        (self.root.ids.editing_date.text,
+         self.root.ids.editing_start.text,
+         self.root.ids.editing_stop.text,
+         self.root.ids.editing_total.text,
+         self.root.ids.editing_fueling_in_liters.text,
+         self.root.ids.editing_fueling_in_rubles.text,
+         self.root.ids.editing_route.text) = self.data_list
+
+    def save_editing_day(self, *args):
+        with sqlite3.connect("driving_statistics.db") as db:
+            cursor = db.cursor()
+            cursor.execute(
+                """UPDATE my_statistics SET
+                start = ?,
+                stop = ?,
+                total = ?,
+                fueling_in_liters = ?,
+                fueling_in_rubles = ?,
+                route = ?
+                WHERE date = ?""",
+                (f"{int(self.root.ids.editing_start.text)}",
+                 f"{int(self.root.ids.editing_stop.text)}",
+                 f"{int(self.root.ids.editing_total.text)}",
+                 f"{float(self.root.ids.editing_fueling_in_liters.text)}",
+                 f"{float(self.root.ids.editing_fueling_in_rubles.text)}",
+                 f"{self.root.ids.editing_route.text}",
+                 f"{self.root.ids.editing_date.text}")
+            )
+
+        if (self.root.ids.editing_date.text[3:] == datetime.datetime.today().strftime("%d.%m.%Y")[3:] and
+            self.root.ids.fuel_card_balance.text != "Не задано..." and
+                self.root.ids.editing_fueling_in_rubles.text):
+
+            self.update_fuel_card_balance(
+                float(self.day["fuel_card_balance"]) +
+                (float(self.data_list[5]) -
+                 float(self.root.ids.editing_fueling_in_rubles.text))
+            )
+
+        self.root.ids.editing_date.text = ""
+
+    def show_recording_date_selection(self):
+        recording_date = MDDatePicker()
+        recording_date.bind(on_save=self.pick_recording_date)
+        recording_date.open()
 
     # def update_settings_json(self):
     #     with open("./settings.json", "w") as file:
@@ -148,8 +222,8 @@ class MainApp(MDApp):
             pass
         else:
             fuel_card_balance = str(
-                int(self.day["fuel_card_balance"]) -
-                int(last_fueling)
+                float(self.day["fuel_card_balance"]) -
+                float(last_fueling)
             )
             self.update_fuel_card_balance(fuel_card_balance)
 
@@ -157,7 +231,6 @@ class MainApp(MDApp):
         if text:
             self.day["fuel_card_balance"] = str(text)
             self.root.ids.fuel_card_balance.text = self.day["fuel_card_balance"]
-            # self.root.ids.settings_fuel_card_balance.text = self.day["fuel_card_balance"]
             self.update_day_json()
         else:
             self.root.ids.fuel_card_balance.text = self.day["fuel_card_balance"]
@@ -168,10 +241,10 @@ class MainApp(MDApp):
                 self.root.ids.route.text = text[:-1]
                 self.root.ids.route.focus = False
 
-    def show_alert_dialog(self):
+    def show_alert_dialog_record_already_exists(self):
         self.dialog = MDDialog(
             auto_dismiss=False,
-            text="""        Запись с текущей датой уже существует в базе данных.
+            text="""        Запись с текущей датой уже существует.
 
         Для редактирования сущесвующей записи используйте соответствующий пункт меню.""",
             buttons=[
@@ -184,7 +257,21 @@ class MainApp(MDApp):
         )
         self.dialog.open()
 
-    def show_incorrect_date_dialog(self):
+    def show_alert_dialog_record_does_not_exist(self):
+        self.dialog = MDDialog(
+            auto_dismiss=False,
+            text="""        Запись с выбраной датой не существует.""",
+            buttons=[
+                MDFlatButton(
+                    text="Ясно",
+                    # text_color=self.theme_cls.primary_color,
+                    on_press=self.close_dialog
+                )
+            ],
+        )
+        self.dialog.open()
+
+    def show_dialog_incorrect_date(self):
         self.dialog = MDDialog(
             auto_dismiss=False,
             text="""Укажите дату.""",
@@ -217,6 +304,24 @@ class MainApp(MDApp):
         )
         self.dialog.open()
 
+    def confirmation_save_editing_day(self):
+        self.dialog = MDDialog(
+            auto_dismiss=False,
+            text="""        Вы действительно хотите сохранить изменения?""",
+            buttons=[
+                MDFlatButton(
+                    text="Да",
+                    on_press=self.close_dialog,
+                    on_release=self.save_editing_day
+                ),
+                MDFlatButton(
+                    text="Нет",
+                    on_press=self.close_dialog
+                )
+            ]
+        )
+        self.dialog.open()
+
     def close_dialog(self, obj):
         self.dialog.dismiss()
 
@@ -228,25 +333,24 @@ class MainApp(MDApp):
                                                                     start INT,
                                                                     stop INT,
                                                                     total INT,
-                                                                    route TEXT,
                                                                     fueling_in_liters DECIMAL,
-                                                                    fueling_in_rubles DECIMAL
+                                                                    fueling_in_rubles DECIMAL,
+                                                                    route TEXT
                                                                     )
             """)
 
             try:
                 cursor.execute(
-                    """INSERT INTO my_statistics (date, start, stop, total, route, fueling_in_liters, fueling_in_rubles) 
+                    """INSERT INTO my_statistics
+                    (date, start, stop, total, fueling_in_liters, fueling_in_rubles, route) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        f'{self.day["date"]}',
-                        f'{int(self.day["start"])}',
-                        f'{int(self.day["stop"])}',
-                        f'{int(self.day["total"])}',
-                        f'{self.day["route"]}',
-                        f'{float(self.day["fueling_in_liters"])}',
-                        f'{float(self.day["fueling_in_rubles"])}'
-                    )
+                    (f"{self.day['date']}",
+                     f"{int(self.day['start'])}",
+                     f"{int(self.day['stop'])}",
+                     f"{int(self.day['total'])}",
+                     f"{float(self.day['fueling_in_liters'])}",
+                     f"{float(self.day['fueling_in_rubles'])}",
+                     f"{self.day['route']}")
                 )
 
                 self.day["date"], self.root.ids.date.text = "Дата", "Дата"
@@ -259,7 +363,7 @@ class MainApp(MDApp):
 
             # Такая дата уже существует в базе данных.
             except sqlite3.IntegrityError as e:
-                self.show_alert_dialog()
+                self.show_alert_dialog_record_already_exists()
 
             except ValueError as e:
                 print(e)
