@@ -28,7 +28,7 @@ MyScreenManager:
                     font_size: "18dp"
                     id: date
                     text: app.day["date"]
-                    on_press: app.show_date_picker()
+                    on_press: app.show_date_picker("day")
 
             BoxLayout:
                 orientation: "vertical"
@@ -57,22 +57,21 @@ MyScreenManager:
                     on_focus: if not self.focus and not self.text: self.text = app.day["stop"]
             
             BoxLayout:
-                orientation: "vertical"
-                # spacing: "20dp"
+                spacing: "20dp"
 
                 MyTextInput:
                     id: total
                     readonly: True
                     hint_text: "Пробег за смену"
                     text: app.day["total"]
-                    # on_text: app.calculation_and_update_fuel_consumed()
+                    on_text: fuel_consumed.text = app.calculation_and_update_fuel_consumed(self.text)
 
-                # MyTextInput:
-                #     id: fuel_consumed
-                #     readonly: True
-                #     font_size: "18dp"
-                #     hint_text: "Затрачено топлива"
-                #     text: app.day["fuel_consumed"]
+                MyTextInput:
+                    id: fuel_consumed
+                    readonly: True
+                    font_size: "18dp"
+                    hint_text: "Затрачено топлива"
+                    text: app.calculation_and_update_fuel_consumed(total.text)
 
             BoxLayout:
                 spacing: "20dp"
@@ -98,7 +97,6 @@ MyScreenManager:
                 
                 MyTextInput:
                     id: fuel_card_balance
-                    # readonly: True
                     input_filter: "float"
                     input_type: "number"
                     hint_text: "Остаток на топливной карте"
@@ -142,46 +140,77 @@ MyScreenManager:
 
         BoxLayout:
             orientation: "vertical"
+            padding: "20dp", "40dp", "20dp", "30dp"
+            spacing: "30dp"
 
-            # MyButton:
-            #     text: "Настройки"
-            #     on_press: root.current = "setting"
+            BoxLayout:
+                orientation: "vertical"
+                spacing: "20dp"
+                size_hint: 0.8, 0.5
+                pos_hint: {"center_x": .5, "center_y": .5}
 
-            MyButton:
-                text: "Редактирование записи"
-                on_press: app.show_recording_date_selection()
-                # on_release: root.current = "editing_select_day"
-                
-            MyButton:
-                text: "Возврат"
-                on_press: root.current = "day"
+                MyButton:
+                    text: "Редактирование записи"
+                    on_press: app.show_date_picker("editing")
+
+                MyButton:
+                    text: "Просмотр записей"
+                    on_press: app.show_date_picker("view")
+            
+            BoxLayout:
+                size_hint: 1, 0.5
+
+            BoxLayout:
+                size_hint: 0.8, 0.2
+                pos_hint: {"center_x": .5, "center_y": .5}
+
+                MyButton:
+                    text: "Настройки"
+                    on_press: root.current = "setting"
+
+            BoxLayout:
+                size_hint: 0.5, 0.1
+                pos_hint: {"center_x": .5, "center_y": .5}
+
+                MyButton:
+                    text: "Возврат"
+                    on_press: root.current = "day"
 
     Setting:
         name: "setting"
 
         BoxLayout:
             orientation: "vertical"
+            padding: "20dp", "40dp", "20dp", "30dp"
+            spacing: "30dp"
 
-            # MyTextInput:
-            #     id: fuel_consumption_per_100_km
-            #     input_filter: "float"
-            #     input_type: "number"
-            #     hint_text: "Потребление топлива машиной на 100км."
-            #     text: app.settings["fuel_consumption_per_100_km"]
-            #     on_focus: if self.focus and self.text == "Не настроено": self.text = ""
-            #     on_focus: if not self.focus: app.setting_fuel_consumption_per_100_km(self.text)
+            BoxLayout:
+                MyTextInput:
+                    id: fuel_consumption_per_100_km
+                    input_filter: "float"
+                    input_type: "number"
+                    hint_text: "Потребление топлива машиной на 100км."
+                    text: app.settings["fuel_consumption_per_100_km"]
+                    on_focus: if self.focus and self.text == "Не настроено": self.text = ""
+                    on_focus: if not self.focus: app.setting_fuel_consumption_per_100_km(self.text)
 
-            # MyTextInput:
-            #     id: settings_fuel_card_balance
-            #     input_filter: "float"
-            #     input_type: "number"
-            #     hint_text: "Остаток на топливной карте"
-            #     text: app.day["fuel_card_balance"]
-            #     on_focus: if self.focus: self.text = ""
-            #     on_focus: if not self.focus: app.setting_fuel_card_balance(self.text)
+            BoxLayout:
+                MyTextInput:
+                    id: work_shift_cost
+                    input_filter: "int"
+                    input_type: "number"
+                    hint_text: "Стоимость одной смены"
+                    text: app.settings["work_shift_cost"]
+                    on_focus: if self.focus and self.text == "Не настроено": self.text = ""
+                    on_focus: if not self.focus: app.setting_work_shift_cost(self.text)
+
+            BoxLayout:
+                size_hint: 1, 6
 
             MyButton:
-                text: "Сохранить настройки"
+                size_hint: 0.5, 0.1
+                pos_hint: {"center_x": .5, "center_y": .5}
+                text: "Назад"
                 on_press: root.current = "menu"
 
     EditingRecordInDatabase:
@@ -224,12 +253,20 @@ MyScreenManager:
                     on_focus: if not self.focus and editing_start.text and editing_stop.text and int(editing_start.text) < int(editing_stop.text): editing_total.text = str(int(editing_stop.text) - int(editing_start.text))
             
             BoxLayout:
-                orientation: "vertical"
+                spacing: "20dp"
 
                 MyTextInput:
                     id: editing_total
                     readonly: True
                     hint_text: "Пробег за смену"
+                    on_text: editing_fuel_consumed.text = app.calculation_and_update_fuel_consumed(self.text)
+                
+                MyTextInput:
+                    id: editing_fuel_consumed
+                    readonly: True
+                    font_size: "18dp"
+                    hint_text: "Затрачено топлива"
+                    text: app.calculation_and_update_fuel_consumed(editing_total.text)
 
             BoxLayout:
                 spacing: "20dp"
@@ -270,3 +307,199 @@ MyScreenManager:
                     MyButton:
                         text: "Сохранить Изменения"
                         on_press: app.confirmation_save_editing_day()
+
+    ViewingRecordsFromDatabase:
+        name: "viewing_records"
+
+        BoxLayout:
+            orientation: "vertical"
+            padding: "25dp", "20dp", "25dp", "25dp"
+            spacing: "20dp"
+
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: 1, 0.45
+                background_color: (205/255, 205/255, 205/255, 1)
+                canvas.before:
+                    Color:
+                        rgba: self.background_color
+                    RoundedRectangle:
+                        size: (self.size[0] + 20, self.size[1] + 20)
+                        pos: (self.pos[0] - 10, self.pos[1] - 10)
+
+                MDLabel:
+                    id: total_for_period
+                    size_hint: 1, 0.25
+                    halign: "center"
+                    on_text: if self.text: root.current = "viewing_records"
+
+                BoxLayout:
+
+                    BoxLayout:
+                        orientation: "vertical"
+                        size_hint: 2.8, 1
+
+                        MDLabel:
+                            text: "Количество рабочих смен:"
+
+                        MDLabel:
+                            text: "Пройдено километров:"
+
+                        MDLabel:
+                            text: "Заправлено литров топлива:"
+                        
+                        MDLabel:
+                            text: "Потрачено рублей на топливо:"
+                        
+                        MDLabel:
+                            text: "Заработано рублей:"
+
+
+                    BoxLayout:
+                        orientation: "vertical"
+
+                        MDLabel:
+                            id: total_for_period_value_1
+                            halign: "right"
+
+                        MDLabel:
+                            id: total_for_period_value_2
+                            halign: "right"
+
+                        MDLabel:
+                            id: total_for_period_value_3
+                            halign: "right"
+
+                        MDLabel:
+                            id: total_for_period_value_4
+                            halign: "right"
+                        
+                        MDLabel:
+                            id: total_for_period_value_5
+                            halign: "right"
+                            text: app.calculation_salary(total_for_period_value_1.text)
+                    
+            BoxLayout:
+                orientation: "vertical"
+
+                MDLabel:
+                    halign: "left"
+                    text: "Дата:"
+                BoxLayout:
+                    MDCheckbox:
+                        id: checkbox_viewing_date
+                        size_hint: 0.07, 1
+                    MDLabel:
+                        id: viewing_date
+                        halign: "right"
+                
+                MDLabel:
+                    halign: "left"
+                    text: "Показания одометра в начале смены:"
+                BoxLayout:
+                    MDCheckbox:
+                        id: checkbox_viewing_start
+                        size_hint: 0.07, 1
+                    MDLabel:
+                        id: viewing_start
+                        halign: "right"
+                
+                MDLabel:
+                    halign: "left"
+                    text: "Показания одометра в конце смены:"
+                BoxLayout:
+                    MDCheckbox:
+                        id: checkbox_viewing_stop
+                        size_hint: 0.07, 1
+                    MDLabel:
+                        id: viewing_stop
+                        halign: "right"
+
+                MDLabel:
+                    halign: "left"
+                    text: "Пробег за смену:"
+                BoxLayout:
+                    MDCheckbox:
+                        id: checkbox_viewing_total
+                        size_hint: 0.07, 1
+                    MDLabel:
+                        id: viewing_total
+                        halign: "right"
+
+                MDLabel:
+                    halign: "left"
+                    text: "Израсходовано топлива:"
+                BoxLayout:
+                    MDCheckbox:
+                        id: checkbox_viewing_consumed_fuel
+                        size_hint: 0.07, 1
+                    MDLabel:
+                        id: viewing_consumed_fuel
+                        halign: "right"
+                        text: "0"
+
+                MDLabel:
+                    halign: "left"
+                    text: "Заправка в литрах:"
+                BoxLayout:
+                    MDCheckbox:
+                        id: checkbox_viewing_fueling_in_liters
+                        size_hint: 0.07, 1
+                    MDLabel:
+                        id: viewing_fueling_in_liters
+                        halign: "right"
+                
+                MDLabel:
+                    halign: "left"
+                    text: "Заправка в рублях:"
+                BoxLayout:
+                    MDCheckbox:
+                        id: checkbox_viewing_fueling_in_rubles
+                        size_hint: 0.07, 1
+                    MDLabel:
+                        id: viewing_fueling_in_rubles
+                        halign: "right"
+
+                MDLabel:
+                    halign: "left"
+                    text: "Маршрут:"
+                BoxLayout:
+                    size_hint: 1, 2.5
+                    MDCheckbox:
+                        id: checkbox_viewing_route
+                        size_hint: 0.07, 1
+                    ScrollView:
+                        MDLabel:
+                            id: viewing_route
+                            size_hint_y: None
+                            height: self.texture_size[1]
+                            halign: "right"
+
+            BoxLayout:
+                pos_hint: {"center_x": .5, "center_y": .5}
+                size_hint: 1, 0.1
+                spacing: "10dp"
+
+                MyButton:
+                    id: previous_record
+                    font_size: "18dp"
+                    text: "<<<"
+                    on_press: app.switch_viewed_record(-1)
+
+                MyButton:
+                    text: "Копировать\n выбранные"
+                    on_press: app.create_message("123", "qwe")
+
+                MyButton:
+                    id: next_record
+                    font_size: "18dp"
+                    text: ">>>"
+                    on_press: app.switch_viewed_record(1)
+            
+            BoxLayout:
+                size_hint: 0.5, 0.1
+                pos_hint: {"center_x": .5, "center_y": .5}
+
+                MyButton:
+                    text: "Завершить\n просмотр"
+                    on_press: root.current = "menu"
