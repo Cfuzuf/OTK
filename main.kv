@@ -332,6 +332,7 @@ MyScreenManager:
                     size_hint: 1, 0.25
                     halign: "center"
                     on_text: if self.text: root.current = "viewing_records"
+                    on_text: if not self.text: root.current = "menu"
 
                 BoxLayout:
 
@@ -382,98 +383,106 @@ MyScreenManager:
             BoxLayout:
                 orientation: "vertical"
 
-                MDLabel:
-                    halign: "left"
-                    text: "Дата:"
                 BoxLayout:
                     MDCheckbox:
                         id: checkbox_viewing_date
-                        size_hint: 0.07, 1
+                        size_hint: 0.1, 1
                     MDLabel:
-                        id: viewing_date
-                        halign: "right"
-                
+                        font_size: "14dp"
+                        halign: "left"
+                        text: "Дата:"
                 MDLabel:
-                    halign: "left"
-                    text: "Показания одометра в начале смены:"
+                    id: viewing_date
+                    halign: "right"
+                
                 BoxLayout:
                     MDCheckbox:
                         id: checkbox_viewing_start
-                        size_hint: 0.07, 1
+                        size_hint: 0.1, 1
                     MDLabel:
-                        id: viewing_start
-                        halign: "right"
-                
+                        font_size: "14dp"
+                        halign: "left"
+                        text: "Показания одометра в начале смены:"
                 MDLabel:
-                    halign: "left"
-                    text: "Показания одометра в конце смены:"
+                    id: viewing_start
+                    halign: "right"
+                
                 BoxLayout:
                     MDCheckbox:
                         id: checkbox_viewing_stop
-                        size_hint: 0.07, 1
+                        size_hint: 0.1, 1
                     MDLabel:
-                        id: viewing_stop
-                        halign: "right"
-
+                        font_size: "14dp"
+                        halign: "left"
+                        text: "Показания одометра в конце смены:"
                 MDLabel:
-                    halign: "left"
-                    text: "Пробег за смену:"
+                    id: viewing_stop
+                    halign: "right"
+
                 BoxLayout:
                     MDCheckbox:
                         id: checkbox_viewing_total
-                        size_hint: 0.07, 1
+                        size_hint: 0.1, 1
                     MDLabel:
-                        id: viewing_total
-                        halign: "right"
-
+                        font_size: "14dp"
+                        halign: "left"
+                        text: "Пробег за смену:"
                 MDLabel:
-                    halign: "left"
-                    text: "Израсходовано топлива:"
+                    id: viewing_total
+                    halign: "right"
+
                 BoxLayout:
                     MDCheckbox:
                         id: checkbox_viewing_consumed_fuel
-                        size_hint: 0.07, 1
+                        size_hint: 0.1, 1
                     MDLabel:
-                        id: viewing_consumed_fuel
-                        halign: "right"
-                        text: "0"
-
+                        font_size: "14dp"
+                        halign: "left"
+                        text: "Израсходовано топлива:"
                 MDLabel:
-                    halign: "left"
-                    text: "Заправка в литрах:"
+                    id: viewing_consumed_fuel
+                    halign: "right"
+                    text: "0"
+
                 BoxLayout:
                     MDCheckbox:
                         id: checkbox_viewing_fueling_in_liters
-                        size_hint: 0.07, 1
+                        size_hint: 0.1, 1
                     MDLabel:
-                        id: viewing_fueling_in_liters
-                        halign: "right"
-                
+                        font_size: "14dp"
+                        halign: "left"
+                        text: "Заправка в литрах:"
                 MDLabel:
-                    halign: "left"
-                    text: "Заправка в рублях:"
+                    id: viewing_fueling_in_liters
+                    halign: "right"
+                
                 BoxLayout:
                     MDCheckbox:
                         id: checkbox_viewing_fueling_in_rubles
-                        size_hint: 0.07, 1
+                        size_hint: 0.1, 1
                     MDLabel:
-                        id: viewing_fueling_in_rubles
-                        halign: "right"
-
+                        font_size: "14dp"
+                        halign: "left"
+                        text: "Заправка в рублях:"
                 MDLabel:
-                    halign: "left"
-                    text: "Маршрут:"
+                    id: viewing_fueling_in_rubles
+                    halign: "right"
+
                 BoxLayout:
-                    size_hint: 1, 2.5
                     MDCheckbox:
                         id: checkbox_viewing_route
-                        size_hint: 0.07, 1
-                    ScrollView:
-                        MDLabel:
-                            id: viewing_route
-                            size_hint_y: None
-                            height: self.texture_size[1]
-                            halign: "right"
+                        size_hint: 0.1, 1
+                    MDLabel:
+                        font_size: "14dp"
+                        halign: "left"
+                        text: "Маршрут:"
+                ScrollView:
+                    size_hint: 1, 2.5
+                    MDLabel:
+                        id: viewing_route
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        halign: "right"
 
             BoxLayout:
                 pos_hint: {"center_x": .5, "center_y": .5}
@@ -502,4 +511,4 @@ MyScreenManager:
 
                 MyButton:
                     text: "Завершить\n просмотр"
-                    on_press: root.current = "menu"
+                    on_press: total_for_period.text = ""

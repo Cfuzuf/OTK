@@ -9,10 +9,9 @@ from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 from kivy.core.clipboard import Clipboard
 
-import platform
-if platform.system() == "Windows" or platform.system() == "Linux":
-    from kivy.core.window import Window
-    Window.size = (1080/3, 2160/3)
+# Для отладки. Пред компиляцией удалить или закомментировать...
+from kivy.core.window import Window
+Window.size = (1080/3, 2160/3)
 
 
 class MyScreenManager(ScreenManager):
