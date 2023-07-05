@@ -21,7 +21,7 @@ MyScreenManager:
                 
             BoxLayout:
                 orientation: "vertical"
-                size_hint: 1, 0.6
+                size_hint: 1, 0.9
 
                 MDRectangleFlatButton:
                     size_hint: 1, 1
@@ -185,16 +185,7 @@ MyScreenManager:
             spacing: "30dp"
 
             BoxLayout:
-                MyTextInput:
-                    id: fuel_consumption_per_100_km
-                    input_filter: "float"
-                    input_type: "number"
-                    hint_text: "Потребление топлива машиной на 100км."
-                    text: app.settings["fuel_consumption_per_100_km"]
-                    on_focus: if self.focus and self.text == "Не настроено": self.text = ""
-                    on_focus: if not self.focus: app.setting_fuel_consumption_per_100_km(self.text)
-
-            BoxLayout:
+                size_hint: 1, 0.2
                 MyTextInput:
                     id: work_shift_cost
                     input_filter: "int"
@@ -203,15 +194,259 @@ MyScreenManager:
                     text: app.settings["work_shift_cost"]
                     on_focus: if self.focus and self.text == "Не настроено": self.text = ""
                     on_focus: if not self.focus: app.setting_work_shift_cost(self.text)
+            
+            BoxLayout:
+                orientation: "vertical"
+                size_hint: 1, 1.1
+                background_color: (205/255, 205/255, 205/255, 1)
+
+                canvas.before:
+                    Color:
+                        rgba: self.background_color
+                    RoundedRectangle:
+                        size: (self.size[0] + 20, self.size[1] + 20)
+                        pos: (self.pos[0] - 10, self.pos[1] - 10)
+
+                BoxLayout:
+                    size_hint: 1, 0.15
+                    padding: "0dp", "0dp", "0dp", "10dp"
+                    MDLabel:
+                        halign: "center"
+                        text: "Потребление топлива на 100км."
+
+                BoxLayout:
+                    orientation: "vertical"
+                    size_hint: 1, 1.1
+
+                        
+                    BoxLayout:
+                        spacing: "100dp"
+                        
+                        MyTextInput:
+                            id: fuel_consumption_per_100_km_summer
+                            input_filter: "float"
+                            input_type: "number"
+                            hint_text: "Лето."
+                            text: app.settings["fuel_consumption_per_100_km_summer"]
+                            on_focus: if self.focus and self.text == " ": self.text = ""
+                            on_focus: if not self.focus: app.setting_fuel_consumption_per_100_km("fuel_consumption_per_100_km_summer", self.text)
+
+                        MyTextInput:
+                            id: fuel_consumption_per_100_km_winter
+                            input_filter: "float"
+                            input_type: "number"
+                            hint_text: "Зима."
+                            text: app.settings["fuel_consumption_per_100_km_winter"]
+                            on_focus: if self.focus and self.text == " ": self.text = ""
+                            on_focus: if not self.focus: app.setting_fuel_consumption_per_100_km("fuel_consumption_per_100_km_winter", self.text)
+
+                    BoxLayout:
+                        size_hint: 1, 0.2
+
+                    BoxLayout:
+                        size_hint: 1, 5
+                        BoxLayout:
+                            orientation: "vertical"
+
+                            MDCheckbox:
+                                id: summer_01
+                                active: app.get_active_month("summer_01")
+                                on_active: if self.active: winter_01.active = False
+                                on_active: if not self.active: winter_01.active = True
+                                on_active: if self.active: app.choice_of_season("summer_01", "winter_01")
+                            MDCheckbox:
+                                id: summer_02
+                                active: app.get_active_month("summer_02")
+                                on_active: if self.active: winter_02.active = False
+                                on_active: if not self.active: winter_02.active = True
+                                on_active: if self.active: app.choice_of_season("summer_02", "winter_02")
+                            MDCheckbox:
+                                id: summer_03
+                                active: app.get_active_month("summer_03")
+                                on_active: if self.active: winter_03.active = False
+                                on_active: if not self.active: winter_03.active = True
+                                on_active: if self.active: app.choice_of_season("summer_03", "winter_03")
+                            MDCheckbox:
+                                id: summer_04
+                                active: app.get_active_month("summer_04")
+                                on_active: if self.active: winter_04.active = False
+                                on_active: if not self.active: winter_04.active = True
+                                on_active: if self.active: app.choice_of_season("summer_04", "winter_04")
+                            MDCheckbox:
+                                id: summer_05
+                                active: app.get_active_month("summer_05")
+                                on_active: if self.active: winter_05.active = False
+                                on_active: if not self.active: winter_05.active = True
+                                on_active: if self.active: app.choice_of_season("summer_05", "winter_05")
+                            MDCheckbox:
+                                id: summer_06
+                                active: app.get_active_month("summer_06")
+                                on_active: if self.active: winter_06.active = False
+                                on_active: if not self.active: winter_06.active = True
+                                on_active: if self.active: app.choice_of_season("summer_06", "winter_06")
+                            MDCheckbox:
+                                id: summer_07
+                                active: app.get_active_month("summer_07")
+                                on_active: if self.active: winter_07.active = False
+                                on_active: if not self.active: winter_07.active = True
+                                on_active: if self.active: app.choice_of_season("summer_07", "winter_07")
+                            MDCheckbox:
+                                id: summer_08
+                                active: app.get_active_month("summer_08")
+                                on_active: if self.active: winter_08.active = False
+                                on_active: if not self.active: winter_08.active = True
+                                on_active: if self.active: app.choice_of_season("summer_08", "winter_08")
+                            MDCheckbox:
+                                id: summer_09
+                                active: app.get_active_month("summer_09")
+                                on_active: if self.active: winter_09.active = False
+                                on_active: if not self.active: winter_09.active = True
+                                on_active: if self.active: app.choice_of_season("summer_09", "winter_09")
+                            MDCheckbox:
+                                id: summer_10
+                                active: app.get_active_month("summer_10")
+                                on_active: if self.active: winter_10.active = False
+                                on_active: if not self.active: winter_10.active = True
+                                on_active: if self.active: app.choice_of_season("summer_10", "winter_10")
+                            MDCheckbox:
+                                id: summer_11
+                                active: app.get_active_month("summer_11")
+                                on_active: if self.active: winter_11.active = False
+                                on_active: if not self.active: winter_11.active = True
+                                on_active: if self.active: app.choice_of_season("summer_11", "winter_11")
+                            MDCheckbox:
+                                id: summer_12
+                                active: app.get_active_month("summer_12")
+                                on_active: if self.active: winter_12.active = False
+                                on_active: if not self.active: winter_12.active = True
+                                on_active: if self.active: app.choice_of_season("summer_12", "winter_12")
+
+                        BoxLayout:
+                            orientation: "vertical"
+                            
+                            MDLabel:
+                                halign: "center"
+                                text: "Январь"
+                            MDLabel:
+                                halign: "center"
+                                text: "Февраль"
+                            MDLabel:
+                                halign: "center"
+                                text: "Март"
+                            MDLabel:
+                                halign: "center"
+                                text: "Апрель"
+                            MDLabel:
+                                halign: "center"
+                                text: "Май"
+                            MDLabel:
+                                halign: "center"
+                                text: "Июнь"
+                            MDLabel:
+                                halign: "center"
+                                text: "Июль"
+                            MDLabel:
+                                halign: "center"
+                                text: "Август"
+                            MDLabel:
+                                halign: "center"
+                                text: "Сентябрь"
+                            MDLabel:
+                                halign: "center"
+                                text: "Октябрь"
+                            MDLabel:
+                                halign: "center"
+                                text: "Ноябрь"
+                            MDLabel:
+                                halign: "center"
+                                text: "Декабрь"
+                            
+                        BoxLayout:
+                            orientation: "vertical"
+
+                            MDCheckbox:
+                                id: winter_01
+                                active: app.get_active_month("winter_01")
+                                on_active: if self.active: summer_01.active = False
+                                on_active: if not self.active: summer_01.active = True
+                                on_active: if self.active: app.choice_of_season("winter_01", "summer_01")
+
+                            MDCheckbox:
+                                id: winter_02
+                                active: app.get_active_month("winter_02")
+                                on_active: if self.active: summer_02.active = False
+                                on_active: if not self.active: summer_02.active = True
+                                on_active: if self.active: app.choice_of_season("winter_02", "summer_02")
+                            MDCheckbox:
+                                id: winter_03
+                                active: app.get_active_month("winter_03")
+                                on_active: if self.active: summer_03.active = False
+                                on_active: if not self.active: summer_03.active = True
+                                on_active: if self.active: app.choice_of_season("winter_03", "summer_03")
+                            MDCheckbox:
+                                id: winter_04
+                                active: app.get_active_month("winter_04")
+                                on_active: if self.active: summer_04.active = False
+                                on_active: if not self.active: summer_04.active = True
+                                on_active: if self.active: app.choice_of_season("winter_04", "summer_04")
+                            MDCheckbox:
+                                id: winter_05
+                                active: app.get_active_month("winter_05")
+                                on_active: if self.active: summer_05.active = False
+                                on_active: if not self.active: summer_05.active = True
+                                on_active: if self.active: app.choice_of_season("winter_05", "summer_05")
+                            MDCheckbox:
+                                id: winter_06
+                                active: app.get_active_month("winter_06")
+                                on_active: if self.active: summer_06.active = False
+                                on_active: if not self.active: summer_06.active = True
+                                on_active: if self.active: app.choice_of_season("winter_06", "summer_06")
+                            MDCheckbox:
+                                id: winter_07
+                                active: app.get_active_month("winter_07")
+                                on_active: if self.active: summer_07.active = False
+                                on_active: if not self.active: summer_07.active = True
+                                on_active: if self.active: app.choice_of_season("winter_07", "summer_07")
+                            MDCheckbox:
+                                id: winter_08
+                                active: app.get_active_month("winter_08")
+                                on_active: if self.active: summer_08.active = False
+                                on_active: if not self.active: summer_08.active = True
+                                on_active: if self.active: app.choice_of_season("winter_08", "summer_08")
+                            MDCheckbox:
+                                id: winter_09
+                                active: app.get_active_month("winter_09")
+                                on_active: if self.active: summer_09.active = False
+                                on_active: if not self.active: summer_09.active = True
+                                on_active: if self.active: app.choice_of_season("winter_09", "summer_09")
+                            MDCheckbox:
+                                id: winter_10
+                                active: app.get_active_month("winter_10")
+                                on_active: if self.active: summer_10.active = False
+                                on_active: if not self.active: summer_10.active = True
+                                on_active: if self.active: app.choice_of_season("winter_10", "summer_10")
+                            MDCheckbox:
+                                id: winter_11
+                                active: app.get_active_month("winter_11")
+                                on_active: if self.active: summer_11.active = False
+                                on_active: if not self.active: summer_11.active = True
+                                on_active: if self.active: app.choice_of_season("winter_11", "summer_11")
+                            MDCheckbox:
+                                id: winter_12
+                                active: app.get_active_month("winter_12")
+                                on_active: if self.active: summer_12.active = False
+                                on_active: if not self.active: summer_12.active = True
+                                on_active: if self.active: app.choice_of_season("winter_12", "summer_12")
 
             BoxLayout:
-                size_hint: 1, 6
+                size_hint: 1, 0.3
 
             MyButton:
                 size_hint: 0.5, 0.1
                 pos_hint: {"center_x": .5, "center_y": .5}
                 text: "Назад"
                 on_press: root.current = "menu"
+                on_press: fuel_consumed.text = app.calculation_and_update_fuel_consumed(total.text)
 
     EditingRecordInDatabase:
         name: "editing_select_day"
@@ -350,7 +585,7 @@ MyScreenManager:
                             text: "Заправлено литров топлива:"
                         
                         MDLabel:
-                            text: "Потрачено рублей на топливо:"
+                            text: "Затраты на топливо:"
                         
                         MDLabel:
                             text: "Заработано рублей:"

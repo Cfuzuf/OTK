@@ -1,6 +1,6 @@
 import json
 import sqlite3
-import os.path
+import os
 import datetime
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -8,10 +8,23 @@ from kivymd.uix.pickers import MDDatePicker
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 from kivy.core.clipboard import Clipboard
+from kivy.utils import platform
 
-# Для отладки. Пред компиляцией удалить или закомментировать...
-from kivy.core.window import Window
-Window.size = (1080/3, 2160/3)
+
+if platform == "android":
+    from android.permissions import request_permissions, Permission
+    request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
+    from jnius import autoclass
+    Environment = autoclass('android.os.Environment')
+    path_to_db = Environment.getExternalStorageDirectory().getAbsolutePath() + "/drivingdb"
+    if not os.path.isdir(path_to_db):
+        os.makedirs(path_to_db)
+
+else:
+    from kivy.core.window import Window
+    Window.softinput_mode = "below_target"
+    Window.size = (1080/3, 2160/3)
+    path_to_db = "."
 
 
 class MyScreenManager(ScreenManager):
@@ -44,7 +57,10 @@ class ViewingRecordsFromDatabase(Screen):
 
 class MainApp(MDApp):
     settings = {
-        "fuel_consumption_per_100_km": "Не настроено",
+        "fuel_consumption_per_100_km_summer": " ",
+        "fuel_consumption_per_100_km_winter": " ",
+        "summer": [],
+        "winter": [],
         "work_shift_cost": "Не настроено"
     }
     day = {
@@ -58,19 +74,33 @@ class MainApp(MDApp):
         "fuel_card_balance": "Не задано..."
     }
 
-    if not os.path.isfile("./settings.json"):
-        with open("./settings.json", "w") as file:
+    if not os.path.isfile(f"{path_to_db}/settings.json"):
+        with open(f"{path_to_db}/settings.json", "w") as file:
             json.dump(settings, file, indent=4)
     else:
-        with open("./settings.json", "r") as file:
+        with open(f"{path_to_db}/settings.json", "r") as file:
             settings = json.load(file)
 
-    if not os.path.isfile("./day.json"):
-        with open("./day.json", "w") as file:
+    if not os.path.isfile(f"{path_to_db}/day.json"):
+        with open(f"{path_to_db}/day.json", "w") as file:
             json.dump(day, file, indent=4)
     else:
-        with open("./day.json", "r") as file:
+        with open(f"{path_to_db}/day.json", "r") as file:
             day = json.load(file)
+    
+    if not os.path.isfile(f"{path_to_db}/driving_statistics.db"):
+        with sqlite3.connect(f"{path_to_db}/driving_statistics.db") as db:
+            cursor = db.cursor()
+            cursor.execute("""CREATE TABLE my_statistics (
+                                                        date TEXT PRIMARY KEY,
+                                                        start INT,
+                                                        stop INT,
+                                                        total INT,
+                                                        fueling_in_liters DECIMAL,
+                                                        fueling_in_rubles DECIMAL,
+                                                        route TEXT
+                                                        )
+            """)
 
     def show_date_picker(self, mode):
         if mode == "day":
@@ -102,7 +132,7 @@ class MainApp(MDApp):
 
     def pick_editing_date(self, *args):
         date = ".".join(reversed(str(args[1]).split("-")))
-        with sqlite3.connect("driving_statistics.db") as db:
+        with sqlite3.connect(f"{path_to_db}/driving_statistics.db") as db:
             cursor = db.cursor()
             try:
                 recording = cursor.execute(
@@ -118,10 +148,17 @@ class MainApp(MDApp):
             self.show_alert_dialog_record_does_not_exist()
 
     def pick_view_record(self, *args):
-        self.date_list = [".".join(reversed(str(x).split("-")))
-                          for x in map(str, args[-1][::len(args[-1])-1])]
+        if len(args[-1]) > 1:
+            step = len(args[-1])-1
+        else:
+            step = 1
 
-        with sqlite3.connect("driving_statistics.db") as db:
+        self.date_list = [".".join(reversed(str(x).split("-")))
+                          for x in map(str, args[-1][::step])]
+        if step == 1:
+            self.date_list.append(self.date_list[0])
+
+        with sqlite3.connect(f"{path_to_db}/driving_statistics.db") as db:
             cursor = db.cursor()
             try:
                 recording = cursor.execute(
@@ -211,7 +248,7 @@ class MainApp(MDApp):
          self.root.ids.editing_route.text) = self.data_list
 
     def save_editing_day(self, *args):
-        with sqlite3.connect("driving_statistics.db") as db:
+        with sqlite3.connect(f"{path_to_db}/driving_statistics.db") as db:
             cursor = db.cursor()
             cursor.execute(
                 """UPDATE my_statistics SET
@@ -244,11 +281,11 @@ class MainApp(MDApp):
         self.root.ids.editing_date.text = ""
 
     def update_settings_json(self):
-        with open("./settings.json", "w") as file:
+        with open(f"{path_to_db}/settings.json", "w") as file:
             json.dump(self.settings, file, indent=4)
 
     def update_day_json(self):
-        with open("./day.json", "w") as file:
+        with open(f"{path_to_db}/day.json", "w") as file:
             json.dump(self.day, file, indent=4)
 
     def calculation_and_update_total(self, **kwargs):
@@ -269,11 +306,16 @@ class MainApp(MDApp):
         self.update_day_json()
 
     def calculation_and_update_fuel_consumed(self, num):
-        if self.settings["fuel_consumption_per_100_km"] == "Не настроено":
+        if self.settings["fuel_consumption_per_100_km_summer"] == " ":
             return "0"
         else:
-            if num:
-                return str(int(num) * int(self.settings["fuel_consumption_per_100_km"]) / 100)
+            if num and self.day["date"] != "Дата":
+                if self.day["date"].split(".")[1] in self.settings["summer"]:
+                    return str(int(num) * float(self.settings["fuel_consumption_per_100_km_summer"]) / 100)
+                elif self.day["date"].split(".")[1] in self.settings["winter"]:
+                    return str(int(num) * float(self.settings["fuel_consumption_per_100_km_winter"]) / 100)
+                else:
+                    return "0"
             else:
                 return "0"
         
@@ -290,15 +332,25 @@ class MainApp(MDApp):
     def update_route(self, *args):
         self.day["route"] = " ".join(args)
         self.update_day_json()
+    
+    def choice_of_season(self, to_active, to_not_active):
+        self.settings[to_active.split("_")[0]].append(to_active.split("_")[1])
+        try:
+            self.settings[to_not_active.split("_")[0]].remove(to_not_active.split("_")[1])
+        except:
+            pass
 
-    def setting_fuel_consumption_per_100_km(self, text):
+        self.update_settings_json()
+
+    def get_active_month(self, id_month):
+        return id_month.split("_")[1] in self.settings[id_month.split("_")[0]]
+
+    def setting_fuel_consumption_per_100_km(self, id, text):
         if text:
-            self.settings["fuel_consumption_per_100_km"] = str(text)
+            self.settings[id] = text
             self.update_settings_json()
         else:
-            self.root.ids.fuel_consumption_per_100_km.text = self.settings[
-                "fuel_consumption_per_100_km"
-            ]
+            self.root.ids[id].text = self.settings[id]
 
     def setting_work_shift_cost(self, text):
         if text:
@@ -424,18 +476,8 @@ class MainApp(MDApp):
         self.dialog.dismiss()
 
     def start_new_day(self, *args):
-        with sqlite3.connect("driving_statistics.db") as db:
+        with sqlite3.connect(f"{path_to_db}/driving_statistics.db") as db:
             cursor = db.cursor()
-            cursor.execute("""CREATE TABLE IF NOT EXISTS my_statistics (
-                                                                    date TEXT PRIMARY KEY,
-                                                                    start INT,
-                                                                    stop INT,
-                                                                    total INT,
-                                                                    fueling_in_liters DECIMAL,
-                                                                    fueling_in_rubles DECIMAL,
-                                                                    route TEXT
-                                                                    )
-            """)
 
             try:
                 cursor.execute(
@@ -459,7 +501,7 @@ class MainApp(MDApp):
                 self.day["fueling_in_rubles"], self.root.ids.fueling_in_rubles.text = "0", "0"
                 self.update_day_json()
 
-            # Такая дата уже существует в базе данных.
+            # Запись с указанной датой уже существует в базе данных.
             except sqlite3.IntegrityError as e:
                 self.show_alert_dialog_record_already_exists()
 
