@@ -78,17 +78,19 @@ MyScreenManager:
 
                 MyTextInput:
                     id: fueling_in_liters
-                    input_filter: "float"
+                    input_type: "number"
                     hint_text: "Заправка в литрах"
                     text: app.day["fueling_in_liters"]
+                    on_text: app.check_input_number(id="fueling_in_liters", text=self.text)
                     on_focus: if self.focus: self.text = ""
                     on_focus: if not self.focus: app.update_fueling(id="fueling_in_liters", text=self.text)
 
                 MyTextInput:
                     id: fueling_in_rubles
-                    input_filter: "float"
+                    input_type: "number"
                     hint_text: "Заправка в рублях"
                     text: app.day["fueling_in_rubles"]
+                    on_text: app.check_input_number(id="fueling_in_rubles", text=self.text)
                     on_focus: if self.focus: self.text = ""
                     on_focus: if not self.focus: app.update_fueling(id="fueling_in_rubles", text=self.text)
             
@@ -97,10 +99,10 @@ MyScreenManager:
                 
                 MyTextInput:
                     id: fuel_card_balance
-                    input_filter: "float"
                     input_type: "number"
                     hint_text: "Остаток на топливной карте"
                     text: app.day["fuel_card_balance"]
+                    on_text: app.check_input_number(id="fuel_card_balance", text=self.text)
                     on_focus: if self.focus: self.text = ""
                     on_focus: if not self.focus: app.update_fuel_card_balance(text=self.text)
 
@@ -224,19 +226,19 @@ MyScreenManager:
                         
                         MyTextInput:
                             id: fuel_consumption_per_100_km_summer
-                            input_filter: "float"
                             input_type: "number"
                             hint_text: "Лето."
                             text: app.settings["fuel_consumption_per_100_km_summer"]
+                            on_text: app.check_input_number(id="fuel_consumption_per_100_km_summer", text=self.text)
                             on_focus: if self.focus and self.text == " ": self.text = ""
                             on_focus: if not self.focus: app.setting_fuel_consumption_per_100_km("fuel_consumption_per_100_km_summer", self.text)
 
                         MyTextInput:
                             id: fuel_consumption_per_100_km_winter
-                            input_filter: "float"
                             input_type: "number"
                             hint_text: "Зима."
                             text: app.settings["fuel_consumption_per_100_km_winter"]
+                            on_text: app.check_input_number(id="fuel_consumption_per_100_km_winter", text=self.text)
                             on_focus: if self.focus and self.text == " ": self.text = ""
                             on_focus: if not self.focus: app.setting_fuel_consumption_per_100_km("fuel_consumption_per_100_km_winter", self.text)
 
@@ -508,13 +510,15 @@ MyScreenManager:
 
                 MyTextInput:
                     id: editing_fueling_in_liters
-                    input_filter: "float"
+                    input_type: "number"
                     hint_text: "Заправка в литрах"
+                    on_text: app.check_input_number(id="editing_fueling_in_liters", text=self.text)
 
                 MyTextInput:
                     id: editing_fueling_in_rubles
-                    input_filter: "float"
+                    input_type: "number"
                     hint_text: "Заправка в рублях"
+                    on_text: app.check_input_number(id="editing_fueling_in_rubles", text=self.text)
             
             BoxLayout:
                 size_hint: 1, 2.7

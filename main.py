@@ -198,6 +198,9 @@ class MainApp(MDApp):
             self.viewed_records_list[self.i][2])
         self.root.ids.viewing_total.text = str(
             self.viewed_records_list[self.i][3])
+        self.root.ids.viewing_consumed_fuel.text = str(
+            self.calculation_and_update_fuel_consumed(self.viewed_records_list[self.i][3])
+        )
         self.root.ids.viewing_fueling_in_liters.text = str(
             self.viewed_records_list[self.i][4])
         self.root.ids.viewing_fueling_in_rubles.text = str(
@@ -321,7 +324,7 @@ class MainApp(MDApp):
         
     def update_fueling(self, id, text):
         if text:
-            self.day[id] = str(int(self.day[id]) + int(text))
+            self.day[id] = str(float(self.day[id]) + float(text))
             self.root.ids[id].text = self.day[id]
             if id == "fueling_in_rubles":
                 self.calculation_fuel_card_balance(text)
@@ -373,9 +376,8 @@ class MainApp(MDApp):
         if self.day["fuel_card_balance"] == "Не задано...":
             pass
         else:
-            fuel_card_balance = str(
-                float(self.day["fuel_card_balance"]) -
-                float(last_fueling)
+            fuel_card_balance = str(round(float(self.day["fuel_card_balance"]) -
+                                          float(last_fueling), 2)
             )
             self.update_fuel_card_balance(fuel_card_balance)
 
@@ -386,6 +388,16 @@ class MainApp(MDApp):
             self.update_day_json()
         else:
             self.root.ids.fuel_card_balance.text = self.day["fuel_card_balance"]
+    
+    def check_input_number(self, id, text):
+        if text:
+            if (text[-1] in "- " or
+                (text[-1] in ",." and "." in text[:-1]) or
+                (text[-1] in ",." and len(text) == 1)):
+                text = text[:-1]
+            elif text[-1] == ",":
+                text = text[:-1] + "."
+        self.root.ids[id].text = text
 
     def unfocus_route_input(self, text):
         if text:
