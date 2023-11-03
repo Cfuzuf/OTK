@@ -26,7 +26,7 @@ MyScreenManager:
                 MDRectangleFlatButton:
                     size_hint: 1, 1
                     font_size: "18dp"
-                    id: date
+                    id: day_date
                     text: app.day["date"]
                     on_press: app.show_date_picker("day")
 
@@ -39,6 +39,7 @@ MyScreenManager:
                     input_type: "number"
                     hint_text: "Показания одометра в начале смены"
                     text: app.day["start"]
+                    on_text: app.check_input_number(id="start", text=self.text)
                     on_focus: if self.focus: self.text = ""
                     on_focus: if not self.focus and self.text: app.calculation_and_update_total(start=self.text)
                     on_focus: if not self.focus and not self.text: self.text = app.day["start"]
@@ -52,6 +53,7 @@ MyScreenManager:
                     input_type: "number"
                     hint_text: "Показания одометра в конце смены"
                     text: app.day["stop"]
+                    on_text: app.check_input_number(id="stop", text=self.text)
                     on_focus: if self.focus: self.text = ""
                     on_focus: if not self.focus and self.text: app.calculation_and_update_total(stop=self.text)
                     on_focus: if not self.focus and not self.text: self.text = app.day["stop"]
@@ -64,14 +66,14 @@ MyScreenManager:
                     readonly: True
                     hint_text: "Пробег за смену"
                     text: app.day["total"]
-                    on_text: fuel_consumed.text = app.calculation_and_update_fuel_consumed(self.text)
+                    on_text: fuel_consumed.text = str(app.calculation_and_update_fuel_consumed(self.text, day_date.text))
 
                 MyTextInput:
                     id: fuel_consumed
                     readonly: True
                     font_size: "18dp"
                     hint_text: "Затрачено топлива"
-                    text: app.calculation_and_update_fuel_consumed(total.text)
+                    text: str(app.calculation_and_update_fuel_consumed(total.text, day_date.text))
 
             BoxLayout:
                 spacing: "20dp"
@@ -194,6 +196,7 @@ MyScreenManager:
                     input_type: "number"
                     hint_text: "Стоимость одной смены"
                     text: app.settings["work_shift_cost"]
+                    on_text: app.check_input_number(id="work_shift_cost", text=self.text)
                     on_focus: if self.focus and self.text == "Не настроено": self.text = ""
                     on_focus: if not self.focus: app.setting_work_shift_cost(self.text)
             
@@ -448,7 +451,7 @@ MyScreenManager:
                 pos_hint: {"center_x": .5, "center_y": .5}
                 text: "Назад"
                 on_press: root.current = "menu"
-                on_press: fuel_consumed.text = app.calculation_and_update_fuel_consumed(total.text)
+                on_press: fuel_consumed.text = str(app.calculation_and_update_fuel_consumed(total.text, app.day["date"]))
 
     EditingRecordInDatabase:
         name: "editing_select_day"
@@ -477,6 +480,7 @@ MyScreenManager:
                     input_filter: "int"
                     input_type: "number"
                     hint_text: "Показания одометра в начале смены"
+                    on_text: app.check_input_number(id="editing_start", text=self.text)
                     on_focus: if not self.focus and editing_start.text and editing_stop.text and int(editing_start.text) < int(editing_stop.text): editing_total.text = str(int(editing_stop.text) - int(editing_start.text))
 
             BoxLayout:
@@ -487,6 +491,7 @@ MyScreenManager:
                     input_filter: "int"
                     input_type: "number"
                     hint_text: "Показания одометра в конце смены"
+                    on_text: app.check_input_number(id="editing_stop", text=self.text)
                     on_focus: if not self.focus and editing_start.text and editing_stop.text and int(editing_start.text) < int(editing_stop.text): editing_total.text = str(int(editing_stop.text) - int(editing_start.text))
             
             BoxLayout:
@@ -496,14 +501,14 @@ MyScreenManager:
                     id: editing_total
                     readonly: True
                     hint_text: "Пробег за смену"
-                    on_text: editing_fuel_consumed.text = app.calculation_and_update_fuel_consumed(self.text)
+                    on_text: editing_fuel_consumed.text = str(app.calculation_and_update_fuel_consumed(self.text, editing_date.text))
                 
                 MyTextInput:
                     id: editing_fuel_consumed
                     readonly: True
                     font_size: "18dp"
                     hint_text: "Затрачено топлива"
-                    text: app.calculation_and_update_fuel_consumed(editing_total.text)
+                    text: str(app.calculation_and_update_fuel_consumed(editing_total.text, editing_date.text))
 
             BoxLayout:
                 spacing: "20dp"
@@ -586,6 +591,9 @@ MyScreenManager:
                             text: "Пройдено километров:"
 
                         MDLabel:
+                            text: "Израсходовано топлива:"
+
+                        MDLabel:
                             text: "Заправлено литров топлива:"
                         
                         MDLabel:
@@ -599,25 +607,29 @@ MyScreenManager:
                         orientation: "vertical"
 
                         MDLabel:
-                            id: total_for_period_value_1
+                            id: number_of_working_shifts
                             halign: "right"
 
                         MDLabel:
-                            id: total_for_period_value_2
+                            id: total_mileage
                             halign: "right"
 
                         MDLabel:
-                            id: total_for_period_value_3
+                            id: amount_of_fuel_used
                             halign: "right"
 
                         MDLabel:
-                            id: total_for_period_value_4
+                            id: fuel_filled
+                            halign: "right"
+
+                        MDLabel:
+                            id: fuel_costs
                             halign: "right"
                         
                         MDLabel:
-                            id: total_for_period_value_5
+                            id: salary
                             halign: "right"
-                            text: app.calculation_salary(total_for_period_value_1.text)
+                            text: app.calculation_salary(number_of_working_shifts.text)
                     
             BoxLayout:
                 orientation: "vertical"

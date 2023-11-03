@@ -9,9 +9,11 @@ from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 from kivy.core.clipboard import Clipboard
 from kivy.utils import platform
+from kivy.core.window import Window
 
 
 if platform == "android":
+    Window.softinput_mode = "below_target"
     from android.permissions import request_permissions, Permission
     request_permissions([Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE])
     from jnius import autoclass
@@ -21,8 +23,6 @@ if platform == "android":
         os.makedirs(path_to_db)
 
 else:
-    from kivy.core.window import Window
-    Window.softinput_mode = "below_target"
     Window.size = (1080/3, 2160/3)
     path_to_db = "."
 
@@ -126,7 +126,7 @@ class MainApp(MDApp):
 
     def pick_date(self, *args):
         date = ".".join(reversed(str(args[1]).split("-")))
-        self.root.ids.date.text = date
+        self.root.ids.day_date.text = date
         self.day["date"] = date
         self.update_day_json()
 
@@ -148,26 +148,27 @@ class MainApp(MDApp):
             self.show_alert_dialog_record_does_not_exist()
 
     def pick_view_record(self, *args):
-        if len(args[-1]) > 1:
-            step = len(args[-1])-1
-        else:
-            step = 1
-
-        self.date_list = [".".join(reversed(str(x).split("-")))
-                          for x in map(str, args[-1][::step])]
-        if step == 1:
-            self.date_list.append(self.date_list[0])
 
         with sqlite3.connect(f"{path_to_db}/driving_statistics.db") as db:
             cursor = db.cursor()
-            try:
-                recording = cursor.execute(
-                    """SELECT * FROM my_statistics WHERE date BETWEEN ? AND ?""",
-                    self.date_list
-                )
-                self.viewed_records_list = recording.fetchall()
-            except Exception as e:
-                print(e)
+            self.date_list = tuple(".".join(reversed(str(x).split("-")))
+                                    for x in map(str, args[-1]))
+            if len(self.date_list) > 1:
+                try:
+                    recording = cursor.execute(
+                        f"""SELECT * FROM my_statistics WHERE date IN {self.date_list}"""
+                    )
+                    self.viewed_records_list = recording.fetchall()
+                except Exception as e:
+                    print(e)
+            else:
+                try:
+                    recording = cursor.execute(
+                        f"""SELECT * FROM my_statistics WHERE date=?""", (self.date_list[0],)
+                    )
+                    self.viewed_records_list = recording.fetchall()
+                except Exception as e:
+                    print(e)
 
         if self.viewed_records_list:
             self.load_viewed_records()
@@ -175,15 +176,18 @@ class MainApp(MDApp):
             self.show_alert_dialog_record_does_not_exist()
 
     def load_viewed_records(self):
-        self.root.ids.total_for_period.text = f"За период с {self.date_list[0]} по {self.date_list[1]}"
-        self.root.ids.total_for_period_value_1.text = str(
+        self.root.ids.total_for_period.text = f"За период с {self.date_list[0]} по {self.date_list[-1]}"
+        self.root.ids.number_of_working_shifts.text = str(
             len(self.viewed_records_list))
-        self.root.ids.total_for_period_value_2.text = str(
+        self.root.ids.total_mileage.text = str(
             sum(x[3] for x in self.viewed_records_list))
-        self.root.ids.total_for_period_value_3.text = str(
-            sum(x[4] for x in self.viewed_records_list))
-        self.root.ids.total_for_period_value_4.text = str(
-            sum(x[5] for x in self.viewed_records_list))
+        self.root.ids.amount_of_fuel_used.text = str(round(sum(map(self.calculation_and_update_fuel_consumed,
+                                                                   (x[3] for x in self.viewed_records_list),
+                                                                   (x[0] for x in self.viewed_records_list))), 2))
+        self.root.ids.fuel_filled.text = str(
+            round(sum(x[4] for x in self.viewed_records_list), 2))
+        self.root.ids.fuel_costs.text = str(
+            round(sum(x[5] for x in self.viewed_records_list), 2))
 
         self.i = 0
         self.switch_viewed_record(0)
@@ -199,7 +203,8 @@ class MainApp(MDApp):
         self.root.ids.viewing_total.text = str(
             self.viewed_records_list[self.i][3])
         self.root.ids.viewing_consumed_fuel.text = str(
-            self.calculation_and_update_fuel_consumed(self.viewed_records_list[self.i][3])
+            self.calculation_and_update_fuel_consumed(self.viewed_records_list[self.i][3],
+                                                      self.viewed_records_list[self.i][0])
         )
         self.root.ids.viewing_fueling_in_liters.text = str(
             self.viewed_records_list[self.i][4])
@@ -238,6 +243,7 @@ class MainApp(MDApp):
             message += f" Маршрут: {self.root.ids.viewing_route.text}"
 
         Clipboard.copy(message.strip())
+        self.show_dialog_create_message()
 
     def load_editing_day(self, data_list):
         self.data_list = list(map(str, data_list))
@@ -308,23 +314,23 @@ class MainApp(MDApp):
 
         self.update_day_json()
 
-    def calculation_and_update_fuel_consumed(self, num):
+    def calculation_and_update_fuel_consumed(self, distance, the_date):
         if self.settings["fuel_consumption_per_100_km_summer"] == " ":
-            return "0"
+            return 0
         else:
-            if num and self.day["date"] != "Дата":
-                if self.day["date"].split(".")[1] in self.settings["summer"]:
-                    return str(int(num) * float(self.settings["fuel_consumption_per_100_km_summer"]) / 100)
-                elif self.day["date"].split(".")[1] in self.settings["winter"]:
-                    return str(int(num) * float(self.settings["fuel_consumption_per_100_km_winter"]) / 100)
+            if distance and the_date and the_date != "Дата":
+                if the_date.split(".")[1] in self.settings["summer"]:
+                    return round(int(distance) * float(self.settings["fuel_consumption_per_100_km_summer"]) / 100, 2)
+                elif the_date.split(".")[1] in self.settings["winter"]:
+                    return round(int(distance) * float(self.settings["fuel_consumption_per_100_km_winter"]) / 100, 2)
                 else:
-                    return "0"
+                    return 0
             else:
-                return "0"
+                return 0
         
     def update_fueling(self, id, text):
         if text:
-            self.day[id] = str(float(self.day[id]) + float(text))
+            self.day[id] = str(round(float(self.day[id]) + float(text), 2))
             self.root.ids[id].text = self.day[id]
             if id == "fueling_in_rubles":
                 self.calculation_fuel_card_balance(text)
@@ -391,9 +397,12 @@ class MainApp(MDApp):
     
     def check_input_number(self, id, text):
         if text:
-            if (text[-1] in "- " or
+            if ((text[-1] in " ") or
                 (text[-1] in ",." and "." in text[:-1]) or
-                (text[-1] in ",." and len(text) == 1)):
+                (text[-1] in ",." and len(text) == 1) or
+                (text[-1] in "-" and "-" in text[:-1]) or
+                (text[-1] in "-" and id not in ["fueling_in_liters", "fueling_in_rubles"]) or
+                (text[-1] in "-" and len(text) > 1)):
                 text = text[:-1]
             elif text[-1] == ",":
                 text = text[:-1] + "."
@@ -483,6 +492,19 @@ class MainApp(MDApp):
             ]
         )
         self.dialog.open()
+    
+    def show_dialog_create_message(self): # TODO
+        self.dialog = MDDialog(
+            auto_dismiss=False,
+            text="""Выбранные поля скопированы в буфер обмена...""",
+            buttons=[
+                MDFlatButton(
+                    text="Ок",
+                    on_press=self.close_dialog
+                )
+            ],
+        )
+        self.dialog.open()
 
     def close_dialog(self, obj):
         self.dialog.dismiss()
@@ -505,7 +527,7 @@ class MainApp(MDApp):
                      f"{self.day['route']}")
                 )
 
-                self.day["date"], self.root.ids.date.text = "Дата", "Дата"
+                self.day["date"], self.root.ids.day_date.text = "Дата", "Дата"
                 self.day["start"], self.root.ids.start.text = self.day["stop"], self.day["stop"]
                 self.day["stop"], self.root.ids.stop.text = "0", "0"
                 self.day["total"], self.root.ids.total.text = "0", "0"
