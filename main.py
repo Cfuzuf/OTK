@@ -110,19 +110,19 @@ class MainApp(MDApp):
             date_picker.bind(on_save=self.pick_date)
             date_picker.open()
         elif mode == "editing":
-            recording_date = MDDatePicker(
+            date_picker = MDDatePicker(
                 title="Выберите дату для редактирования"
             )
-            recording_date.bind(on_save=self.pick_editing_date)
-            recording_date.open()
+            date_picker.bind(on_save=self.pick_editing_date)
+            date_picker.open()
         elif mode == "view":
-            recording_date = MDDatePicker(
+            date_picker = MDDatePicker(
                 title="""Выберите дату или диапазон дат
 для просмотра""",
                 mode="range"
             )
-            recording_date.bind(on_save=self.pick_view_record)
-            recording_date.open()
+            date_picker.bind(on_save=self.pick_view_record)
+            date_picker.open()
 
     def pick_date(self, *args):
         date = ".".join(reversed(str(args[1]).split("-")))
@@ -221,29 +221,6 @@ class MainApp(MDApp):
             self.root.ids.next_record.disabled = True
         else:
             self.root.ids.next_record.disabled = False
-
-    def create_message(self, title, text):
-        message = ""
-
-        if self.root.ids.checkbox_viewing_date.active:
-            message += f" Дата: {self.root.ids.viewing_date.text}"
-        if self.root.ids.checkbox_viewing_start.active:
-            message += f" Показания одометра в начале смены: {self.root.ids.viewing_start.text}"
-        if self.root.ids.checkbox_viewing_stop.active:
-            message += f" Показания одометра в конце смены: {self.root.ids.viewing_stop.text}"
-        if self.root.ids.checkbox_viewing_total.active:
-            message += f" Пробег за смену: {self.root.ids.viewing_total.text}"
-        if self.root.ids.checkbox_viewing_consumed_fuel.active:
-            message += f" Израсходовано топлива: {self.root.ids.viewing_consumed_fuel.text}"
-        if self.root.ids.checkbox_viewing_fueling_in_liters.active:
-            message += f" Заправка в литрах: {self.root.ids.viewing_fueling_in_liters.text}"
-        if self.root.ids.checkbox_viewing_fueling_in_rubles.active:
-            message += f" Заправка в рублях: {self.root.ids.viewing_fueling_in_rubles.text}"
-        if self.root.ids.checkbox_viewing_route.active:
-            message += f" Маршрут: {self.root.ids.viewing_route.text}"
-
-        Clipboard.copy(message.strip())
-        self.show_dialog_create_message()
 
     def load_editing_day(self, data_list):
         self.data_list = list(map(str, data_list))
@@ -493,10 +470,10 @@ class MainApp(MDApp):
         )
         self.dialog.open()
     
-    def show_dialog_create_message(self): # TODO
+    def show_dialog_create_message_error(self):
         self.dialog = MDDialog(
             auto_dismiss=False,
-            text="""Выбранные поля скопированы в буфер обмена...""",
+            text="""Выберите чем хотите поделиться...""",
             buttons=[
                 MDFlatButton(
                     text="Ок",
@@ -542,6 +519,49 @@ class MainApp(MDApp):
             except ValueError as e:
                 print(e)
 
+    def share(self):
+        if platform == "android" and any([
+            self.root.ids.checkbox_viewing_date.active,
+            self.root.ids.checkbox_viewing_start.active,
+            self.root.ids.checkbox_viewing_stop.active,
+            self.root.ids.checkbox_viewing_total.active,
+            self.root.ids.checkbox_viewing_consumed_fuel.active,
+            self.root.ids.checkbox_viewing_fueling_in_liters.active,
+            self.root.ids.checkbox_viewing_fueling_in_rubles.active,
+            self.root.ids.checkbox_viewing_route.active
+        ]):
+
+            message = ""
+            if self.root.ids.checkbox_viewing_date.active:
+                message += f" Дата: {self.root.ids.viewing_date.text}"
+            if self.root.ids.checkbox_viewing_start.active:
+                message += f" Показания одометра в начале смены: {self.root.ids.viewing_start.text}"
+            if self.root.ids.checkbox_viewing_stop.active:
+                message += f" Показания одометра в конце смены: {self.root.ids.viewing_stop.text}"
+            if self.root.ids.checkbox_viewing_total.active:
+                message += f" Пробег за смену: {self.root.ids.viewing_total.text}"
+            if self.root.ids.checkbox_viewing_consumed_fuel.active:
+                message += f" Израсходовано топлива: {self.root.ids.viewing_consumed_fuel.text}"
+            if self.root.ids.checkbox_viewing_fueling_in_liters.active:
+                message += f" Заправка в литрах: {self.root.ids.viewing_fueling_in_liters.text}"
+            if self.root.ids.checkbox_viewing_fueling_in_rubles.active:
+                message += f" Заправка в рублях: {self.root.ids.viewing_fueling_in_rubles.text}"
+            if self.root.ids.checkbox_viewing_route.active:
+                message += f" Маршрут: {self.root.ids.viewing_route.text}"
+            message = message.strip()
+
+            PythonActivity = autoclass("org.kivy.android.PythonActivity")
+            Intent = autoclass("android.content.Intent")
+            String = autoclass("java.lang.String")
+            intent = Intent()
+            intent.setAction(Intent.ACTION_SEND)
+            intent.putExtra(Intent.EXTRA_TEXT, String(message))
+            intent.setType("text/plain")
+            chooser = Intent.createChooser(intent, String(""))
+            PythonActivity.mActivity.startActivity(chooser)
+
+        else:
+            self.show_dialog_create_message_error()
 
 if __name__ == "__main__":
     MainApp().run()
