@@ -7,7 +7,6 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.uix.pickers import MDDatePicker
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
-from kivy.core.clipboard import Clipboard
 from kivy.utils import platform
 from kivy.core.window import Window
 
@@ -21,7 +20,6 @@ if platform == "android":
     path_to_db = Environment.getExternalStorageDirectory().getAbsolutePath() + "/drivingdb"
     if not os.path.isdir(path_to_db):
         os.makedirs(path_to_db)
-
 else:
     Window.size = (1080/3, 2160/3)
     path_to_db = "."
@@ -158,7 +156,8 @@ class MainApp(MDApp):
                     recording = cursor.execute(
                         f"""SELECT * FROM my_statistics WHERE date IN {self.date_list}"""
                     )
-                    self.viewed_records_list = recording.fetchall()
+                    self.viewed_records_list = sorted(recording.fetchall(),
+                                                      key=lambda x: datetime.datetime.strptime(x[0], "%d.%m.%Y"))
                 except Exception as e:
                     print(e)
             else:
